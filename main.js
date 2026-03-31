@@ -124,28 +124,20 @@ async function populateFieldsList(){
         listItem.closable = true;
 
         // if the field's alias matches the currently applied filter, we'll make it as the selected field
-        if(field.alias === appState.filterFieldName){
+        if(field.name === appState.filterFieldName){
           appState.filterField = field; // then assinging the field object to the variable 
           listItem.selected = true;
-          console.log(`Default filter determined as: ${field}`)
+          console.log(`Default filter determined as: ${appState.filterField.alias}`)
         }
 
         fieldsList.appendChild(listItem);
 
         listItem.addEventListener("calciteListItemSelect", () => {
-          appState.filterField = appState.filterField === field ? null : field;
-          console.log(`Selected field '${appState.filterField.alias}' information:`, appState.filterField);
-
-          /* 
-          ADD FUNCTIONALITY HERE FOR CHANGING DFEFINITION EXPRESSION
-            clear any preexisting definition expression
-            apply new definition expression
-          */
-
-             
-          changeFilterField(); // changing the filter field, pulling from state
-
-
+          if (listItem.selected){
+            appState.filterField = field;
+            console.log(`Selected field ${appState.filterField.alias}`);
+            changeFilterField(); // changing the filter field, pulling from state
+          }
         });
 
         listItem.addEventListener("calciteListItemClose", () => {
@@ -162,15 +154,18 @@ async function populateFieldsList(){
 };
 await populateFieldsList();
 
-
-async function changeFilterField(){
+async function changeFilterField() {
+  if (!appState.filterField) {
+    warnUser("No filter field selected.");
+    return;
+  }
 
   mapEl.map.layers.forEach(layer => {
-    console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`)
-    console.log(`Preexisting definition expression: ${layer.definitionExpression}`)
-    layer.definitionExpression = `${appState.filterField.name} > 0`;
-    console.log(`NEW defintion expression should be none now: ${layer.definitionExpression}`)
-
+    if (layer.type === "feature") {
+      console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`);
+      layer.definitionExpression = `${appState.filterField.name} > 0`;
+      console.log(`New definition expression: ${layer.definitionExpression}`);
+    }
   });
 }
 
