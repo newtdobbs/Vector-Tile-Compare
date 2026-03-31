@@ -1,0 +1,44 @@
+  html,
+  body,
+  #mapEl {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+  }
+
+
+  #logo-icon {
+    align-self: center;
+    height: auto;
+    margin-inline-start: 0.5rem;
+  }
+
+  #shell-panel-nav {
+    --calcite-shell-panel-min-width: 18rem;
+  }
+
+  @media (max-width: 400px) {
+    #shell-panel-nav {
+      --calcite-shell-panel-min-width: 80vw;
+    }
+  }
+
+  calcite-block[data-block-id] {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+
+
+  #card-heading {
+    font-size: var(--calcite-font-size-md);
+  }
+
+  #card-description {
+    font-size: var(--calcite-font-size);
+  }
+
+  #card-tags {
+    flex-wrap: wrap;
+  }

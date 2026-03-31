@@ -1,0 +1,77 @@
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Calcite components: Create a mapping app with web components</title>
+
+  <script type="module" src="https://js.arcgis.com/5.0/"></script>
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+
+<body>
+
+  <calcite-shell content-behind>
+
+    <calcite-shell-panel id="shell-panel-nav" slot="panel-end" display-mode="float" height="l">
+
+      <calcite-panel id="app-heading" hidden>
+        <calcite-icon id="logo-icon" slot="header-actions-start" icon="layer-vector-tile" text-label="explore"></calcite-icon>
+        <calcite-action-bar id="map-actions" slot="action-bar" layout="horizontal" expand-disabled>
+          <calcite-action icon="list-button" text="Field" data-action-id="field"></calcite-action>
+          <calcite-action icon="layers" text="Layers" data-action-id="layers"></calcite-action>
+          <calcite-action icon="basemap" text="Basemap" data-action-id="basemaps"></calcite-action>
+          <calcite-action icon="legend" text="Legend" data-action-id="legend"></calcite-action>
+          <calcite-action icon="bookmark" text="Bookmarks" data-action-id="bookmarks"></calcite-action>
+          <calcite-action icon="information" text="About" data-action-id="information"></calcite-action>
+        </calcite-action-bar>
+      </calcite-panel>
+
+      <!-- Map-specific blocks containing ArcGIS Maps SDK for JavaScript components -->
+      <calcite-block expanded heading="Filter Field" data-block-id="field" hidden>
+        <calcite-list id="fields-list"></calcite-list>
+      </calcite-block>
+      <calcite-block expanded heading="Layers" data-block-id="layers" hidden>
+        <arcgis-layer-list drag-enabled reference-element="mapEl" visibility-appearance="checkbox"></arcgis-layer-list>
+      </calcite-block>
+
+      <calcite-block expanded heading="Basemaps" data-block-id="basemaps" hidden>
+        <arcgis-basemap-gallery reference-element="mapEl"></arcgis-basemap-gallery>
+      </calcite-block>
+      <calcite-block expanded heading="Legend" data-block-id="legend" hidden>
+        <arcgis-legend legend-style="classic" reference-element="mapEl"></arcgis-legend>
+      </calcite-block>
+      <calcite-block expanded heading="Bookmarks" data-block-id="bookmarks" hidden>
+        <arcgis-bookmarks editing-enabled="false" reference-element="mapEl"></arcgis-bookmarks>
+      </calcite-block>
+
+      <!-- Info block (populates with info from the web map) -->
+      <calcite-block expanded heading="About the data" data-block-id="information" hidden>
+        <calcite-card id="card-content">
+          <img id="card-thumbnail" alt="Webmap thumbnail" slot="thumbnail" />
+          <div id="card-heading" slot="heading">
+            <!-- Dynamically populated -->
+          </div>
+          <div id="card-description" slot="description">
+            <!-- Dynamically populated -->
+          </div>
+          <div id="card-tags" slot="footer-end">
+            <!-- Dynamically populated -->
+          </div>
+        </calcite-card>
+      </calcite-block>
+
+    </calcite-shell-panel>
+
+    <arcgis-map id="mapEl">
+
+      <arcgis-zoom slot="top-left"></arcgis-zoom>
+
+    </arcgis-map>
+
+  </calcite-shell>
+
+
+</body>
+<script type="module" src="/main.js"></script>
+</html>
