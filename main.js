@@ -20,9 +20,9 @@ mapEl.addEventListener("arcgisViewReadyChange", () => {
   document.getElementById("card-heading").innerHTML = title;
   document.getElementById("card-thumbnail").src = thumbnailUrl;
   document.getElementById("card-description").innerHTML = `<p>${snippet}</p><p>Last modified on ${modified}.</p>`;
-  tags.forEach(tag => {
-    document.getElementById("card-tags").innerHTML += `<calcite-chip>${tag}</calcite-chip>`;
-  });
+  // tags.forEach(tag => {
+  //   document.getElementById("card-tags").innerHTML += `<calcite-chip>${tag}</calcite-chip>`;
+  // });
 
   document.getElementById("app-heading").removeAttribute("hidden");
 
