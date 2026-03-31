@@ -8,6 +8,12 @@ import "./style.css";
 
 const mapEl = document.getElementById("mapEl");
 
+const appState = {
+  webMap: null,
+  filterField: null,
+  filterFieldName: null
+}
+
 mapEl.addEventListener("arcgisViewReadyChange", () => {
   const { title, thumbnailUrl, snippet, modified, tags } = mapEl.map.portalItem;
   document.getElementById("app-heading").heading = "Vector Tile Compare";
@@ -57,26 +63,23 @@ const ignoreFields = [
   "UniqueID"
 ]
 
-let wm;
-let filteredField; // need an expression here to grab the field that's currently being filtered in the web map
-let filteredFieldName;
 async function populateFieldsList(){
   
   fieldsList.innerHTML = ""; // removing any preexisting fields
   fieldsList.selectionMode = "single"; 
   try {
-    wm = new WebMap({
+    appState.webMap = new WebMap({
       portalItem: {id: "3cc124d922f3490fa2a23157d4ffd62e"}
     })
   } catch (e) {
     console.error(`Could not create/load layer from item ID 3cc124d922f3490fa2a23157d4ffd62e with error: ${e}`);
   }
-  await wm.load();
-  mapEl.map = wm;
+  await appState.webMap.load();
+  mapEl.map = appState.webMap;
   
   // DETERMINING THE DEFAULT FILTER
   const wmFeatureLayers = []
-  wm.layers.forEach(layer => {
+  appState.webMap.layers.forEach(layer => {
     if (layer.type === "feature") {
       wmFeatureLayers.push(layer); // adding the feature layer to an array we can use
       console.log(`Layer: ${layer.title}`);
@@ -87,8 +90,8 @@ async function populateFieldsList(){
         // Simple regex to get the first field name before an operator
         const match = layer.definitionExpression.match(/^\s*([^\s=<>!]+)/);
         if (match) {
-          filteredFieldName = match[1].trim();
-          console.log(`Filtered field: ${filteredFieldName}`);
+          appState.filterFieldName = match[1].trim();
+          console.log(`Filtered field: ${appState.filterFieldName}`);
         }
       } else {
         console.log("No filter applied.");
@@ -108,6 +111,7 @@ async function populateFieldsList(){
     //       console.log(`Field: ${field.name}, type: ${field.type}, valueType: ${field.valueType}`);
     //   });
 
+    // looping through both the layers
     layer.fields.forEach(field => {
       // if its not one of the fields we want to ignore
       if (!ignoreFields.includes(field.name)) {
@@ -120,26 +124,35 @@ async function populateFieldsList(){
         listItem.closable = true;
 
         // if the field's alias matches the currently applied filter, we'll make it as the selected field
-        if(field.alias === filteredFieldName){
+        if(field.alias === appState.filterFieldName){
+          appState.filterField = field; // then assinging the field object to the variable 
           listItem.selected = true;
-          filteredField = field; // then assinging the field object to the variable 
-          console.log(`Default filter determined as: ${field.alias}`)
+          console.log(`Default filter determined as: ${field}`)
         }
 
         fieldsList.appendChild(listItem);
 
         listItem.addEventListener("calciteListItemSelect", () => {
-          selectedField = selectedField === field ? null : field;
-          console.log(`Selected field '${selectedField.alias}' information:`, selectedField);
-          if (document.querySelector("calcite-alert")) {
-            document.querySelector("calcite-alert").remove();
-          }
+          appState.filterField = appState.filterField === field ? null : field;
+          console.log(`Selected field '${appState.filterField.alias}' information:`, appState.filterField);
+
+          /* 
+          ADD FUNCTIONALITY HERE FOR CHANGING DFEFINITION EXPRESSION
+            clear any preexisting definition expression
+            apply new definition expression
+          */
+
+             
+          changeFilterField(); // changing the filter field, pulling from state
+
+
         });
 
         listItem.addEventListener("calciteListItemClose", () => {
-          console.warn("Removing field: ", field.alias);
-          if (selectedField?.alias === field.alias) {
-            selectedField = null;
+          if (appState.filterField.alias === field.alias) {
+            warnUser("Please select a different filter field before removing the selected field.");
+          } else {
+            warnUser("Removing field: ", field.alias);
           }
           listItem.remove();
         });
@@ -150,9 +163,36 @@ async function populateFieldsList(){
 await populateFieldsList();
 
 
+async function changeFilterField(){
 
+  mapEl.map.layers.forEach(layer => {
+    console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`)
+    console.log(`Preexisting definition expression: ${layer.definitionExpression}`)
+    layer.definitionExpression = `${appState.filterField.name} > 0`;
+    console.log(`NEW defintion expression should be none now: ${layer.definitionExpression}`)
 
+  });
+}
 
+// FUNCTION FOR DIPLAYING A CALCITE WARNING MESSAGE
+function warnUser(message){
+  // clear any existing warnings
+  const existingAlert = document.querySelector("calcite-alert")
+  if(existingAlert) existingAlert.remove(); // clearing any preexisting alerts
+
+  // displaying an alert, warning the user to turn on the overlay when taking screensbot 
+  const newAlert = document.createElement("calcite-alert");
+  newAlert.open = true;
+  newAlert.kind = "warning";
+  newAlert.autoDismiss = true;
+  const title = document.createElement("calcite-alert-message");
+  title.textContent = message;
+  title.slot = "title";
+  newAlert.appendChild(title);
+
+  // appending the warning to the DOM
+  document.body.appendChild(newAlert);
+}
 
 
 
