@@ -32,7 +32,8 @@
         <calcite-list id="fields-list"></calcite-list>
       </calcite-block>
       <calcite-block expanded heading="Layers" data-block-id="layers" hidden>
-        <arcgis-layer-list drag-enabled reference-element="mapEl" visibility-appearance="checkbox"></arcgis-layer-list>
+        <!-- <arcgis-layer-list drag-enabled id="layer-list" reference-element="mapEl" visibility-appearance="checkbox"></arcgis-layer-list> -->
+        <calcite-list selection-mode="multiple" drag-enabled id="layer-list"></calcite-list>
       </calcite-block>
 
       <calcite-block expanded heading="Basemaps" data-block-id="basemaps" hidden>

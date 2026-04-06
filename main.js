@@ -4,15 +4,42 @@ const MapView = await $arcgis.import("@arcgis/core/views/MapView.js");
 const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
 const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
 const WebMap = await $arcgis.import("@arcgis/core/WebMap.js");
+const FeatureEffect = await $arcgis.import("@arcgis/core/layers/support/FeatureEffect.js");
 import "./style.css";
 
-const mapEl = document.getElementById("mapEl");
 
+/* 
+DOM ELEMENTS
+*/
+const mapEl = document.getElementById("mapEl");
+const fieldsList = document.getElementById("fields-list");
+const layerList = document.getElementById("layer-list");
+
+/* 
+CONSTANTS
+*/
 const appState = {
   webMap: null,
-  filterField: null,
-  filterFieldName: null
+  layerDefinitionExpressions: [],
+  activeDefinitionExpression: null,
+  activeDefinitionExpressionField: null,
+  featureLayers: [],
+  bottomRenderer: null, // the renderer for the bottom (RED) layer
+  topRenderer: null // the renderer for the top (RED) layer
 }
+// fields to ignore listed by NAME not alias
+const ignoreFields = [
+  "OBJECTID",
+  "LOD",
+  "ROW",
+  "COL",
+  "LEAF",
+  "SIZE",
+  "x",
+  "y",
+  "UniqueID"
+]
+let activeWidget;
 
 mapEl.addEventListener("arcgisViewReadyChange", () => {
   const { title, thumbnailUrl, snippet, modified, tags } = mapEl.map.portalItem;
@@ -20,15 +47,9 @@ mapEl.addEventListener("arcgisViewReadyChange", () => {
   document.getElementById("card-heading").innerHTML = title;
   document.getElementById("card-thumbnail").src = thumbnailUrl;
   document.getElementById("card-description").innerHTML = `<p>${snippet}</p><p>Last modified on ${modified}.</p>`;
-  // tags.forEach(tag => {
-  //   document.getElementById("card-tags").innerHTML += `<calcite-chip>${tag}</calcite-chip>`;
-  // });
-
   document.getElementById("app-heading").removeAttribute("hidden");
-
 });
 
-let activeWidget;
 const handleActionBarClick = ({ target }) => {
   if (target.tagName !== "CALCITE-ACTION") {
     return;
@@ -48,111 +69,147 @@ const handleActionBarClick = ({ target }) => {
 };
 document.querySelector("calcite-action-bar").addEventListener("click", handleActionBarClick);
 
-const fieldsList = document.getElementById("fields-list");
 
-// fields to ignore listed by NAME not alias
-const ignoreFields = [
-  "OBJECTID",
-  "LOD",
-  "ROW",
-  "COL",
-  "LEAF",
-  "SIZE",
-  "x",
-  "y",
-  "UniqueID"
-]
+// creating a map for the DOM container
+async function createMap() {
+  fieldsList.innerHTML = ""; // removing any preexising HTML from the fields list
+  fieldsList.selectionMode = "single";
 
-async function populateFieldsList(){
-  
-  fieldsList.innerHTML = ""; // removing any preexisting fields
-  fieldsList.selectionMode = "single"; 
   try {
-    appState.webMap = new WebMap({
-      portalItem: {id: "3cc124d922f3490fa2a23157d4ffd62e"}
-    })
-  } catch (e) {
-    console.error(`Could not create/load layer from item ID 3cc124d922f3490fa2a23157d4ffd62e with error: ${e}`);
-  }
-  await appState.webMap.load();
-  mapEl.map = appState.webMap;
+    const map = new WebMap({
+      portalItem: { id: "a9ea93c330f9445cb7993653ee141333" }
+    });
+    await map.load(); // awaiting its load
+    mapEl.map = map; // assigning it to the DOM element
+
+    const firstExpression = appState.layerDefinitionExpressions[0]?.expression;
+    const mismatched = appState.layerDefinitionExpressions.filter(
+      l => l.expression !== firstExpression
+    );
   
-  // DETERMINING THE DEFAULT FILTER
-  const wmFeatureLayers = []
-  appState.webMap.layers.forEach(layer => {
-    if (layer.type === "feature") {
-      wmFeatureLayers.push(layer); // adding the feature layer to an array we can use
-      console.log(`Layer: ${layer.title}`);
+    await populateLayerList();
 
-      if (layer.definitionExpression) {
-        console.log(`Filter expression: ${layer.definitionExpression}`);
+    if (mismatched.length > 0) {
+      const details = appState.layerDefinitionExpressions
+        .map(l => `${l.title}: '${l.expression}'`)
+        .join("; ");
+      warnUser(`Different definition expressions exist between layers: ${details}`);
+    }
 
-        // Simple regex to get the first field name before an operator
-        const match = layer.definitionExpression.match(/^\s*([^\s=<>!]+)/);
-        if (match) {
-          appState.filterFieldName = match[1].trim();
-          console.log(`Filtered field: ${appState.filterFieldName}`);
+    for (let i=0;i < appState.featureLayers.length; i++){
+      console.log(`Layer ${i}:`, appState.featureLayers[i]);
+    }
+
+  } catch (e) {
+    warnUser(`Could not create/load layer from item ID 3cc124d922f3490fa2a23157d4ffd62e with error: ${e}`);
+  }
+}
+await createMap();
+
+async function populateLayerList(){
+  layerList.innerHTML = ""; // removing any preexising HTML from the layer list
+  appState.layerDefinitionExpressions = []; // clearing pre-existing defintino expressions
+
+  // looping through the layers of the map
+  // Collect definition expressions and layer titles
+  for (const layer of mapEl.map.layers) {
+    if (layer.type === "feature") { // only if its a feature layer
+      await layer.load();
+      appState.featureLayers.push(layer);
+      appState.layerDefinitionExpressions.push({
+        title: layer.title,
+        expression: layer.definitionExpression || ""
+      });
+
+      // initializing the top (blue) and bottom (red) renderers
+      appState.bottomRenderer = appState.featureLayers.at(0).renderer // bottom renderer should be red, 
+      console.log(`For layer ${appState.featureLayers.at(0).title} the bottom renderer is`, appState.bottomRenderer);
+      
+
+      appState.topRenderer = appState.featureLayers.at(-1).renderer // top renderer should be blue to mask out the red
+      console.log(`${appState.featureLayers.at(-1).title} the top renderer is`, appState.topRenderer);
+
+      // list item to represent the layer
+      const listItem = document.createElement("calcite-list-item");
+      listItem.label = layer.title;
+      listItem.scale = "l";
+      listItem.value = layer.title;
+      listItem.selected = true; // selected by default to indicate a layer is visible
+
+      // event listener for a layer's visibility toggle
+      listItem.addEventListener("calciteListItemSelect", () => { // this event fires AFTER the property changes
+        const selectedLayer = mapEl.map.layers.filter(layer => layer.title === listItem.title); 
+        if(listItem.selected === true) { // if a layer was not selected when clicked, it is now selected (aka visible)
+          console.log('layer turned on')
+          console.log('map el layers', mapEl.map.layers);
+          layer.visible = true; // should just be able to refer to layer here, as we're within a for loop of mapEl.map.layers     
+        } else{ // otherwise it was selected before it was clicked, it is now unselected (aka hidden)
+          console.log('layer turned off') 
+          layer.visible = false;
         }
-      } else {
-        console.log("No filter applied.");
-      }
+      });
+     
+      // and appending it to our calcite-list
+      layerList.append(listItem);
+    }
+  }
+
+  // event listeners for our pseudo layer list
+  layerList.addEventListener("calciteListOrderChange", () => {
+    console.log("order change")
+    mapEl.map.layers.at(0).renderer = appState.topRenderer // assigning top renderer to new layer at the 0 index, aka top
+    mapEl.map.layers.at(-1).renderer = appState.bottomRenderer // assigning bottom renderer to new layer at final index, aka new bottom layer
+
+  });
+} 
+
+
+// populating the fields list based on the first layer
+function populateFieldsList(){
+  appState.featureLayers[0].fields.forEach(field => { // we'll just use the first layer by default
+    if (!ignoreFields.includes(field.name)) {
+      createListItemForField(field);
     }
   });
-  console.log("web map feature layers", wmFeatureLayers)
+}
 
-  // AFTER collecting all the feature layers for the web map
-  if (wmFeatureLayers.length > 0) {
-    const layer = wmFeatureLayers[0];
-    await layer.load(); // we'll await its load to make sure the fields are available
-    
-    // Can log all the fields here for debug
-    // console.log("All fields:");
-    // wmFeatureLayers[0].fields.forEach(field => {
-    //       console.log(`Field: ${field.name}, type: ${field.type}, valueType: ${field.valueType}`);
-    //   });
+function createListItemForField(f){
+  // creating a calcite list item for the field        
+  const listItem = document.createElement("calcite-list-item");
+  listItem.label = f.alias;
+  listItem.scale = "s";
+  listItem.value = f.name;
+  listItem.closable = true;
+  
+  // changing the selected field
+  listItem.addEventListener("calciteListItemSelect", () => {
+    if (listItem.selected){
+      appState.filterField = f;
+      console.log(`Selected field is now ${appState.filterField.alias}`);
+      changeFilterField(); 
+    }
+  });
+  
+  // removing a field for the list
+  listItem.addEventListener("calciteListItemClose", () => {
+    console.log(`Remove clicked for field ${listItem.value}, definition expression is: ${appState.defintionExpression}`);
+    if (listItem.value === appState.activeDefinitionExpression) {
+      warnUser("Please select a different filter field before removing the selected field.");
+      return;
+    } else {
+      warnUser("Removing field: ", f.alias);
+      listItem.remove();
+    }
+  });
 
-    // looping through both the layers
-    layer.fields.forEach(field => {
-      // if its not one of the fields we want to ignore
-      if (!ignoreFields.includes(field.name)) {
-
-        
-        const listItem = document.createElement("calcite-list-item");
-        listItem.label = field.alias;
-        listItem.scale = "s";
-        listItem.value = field.name;
-        listItem.closable = true;
-
-        // if the field's alias matches the currently applied filter, we'll make it as the selected field
-        if(field.name === appState.filterFieldName){
-          appState.filterField = field; // then assinging the field object to the variable 
-          listItem.selected = true;
-          console.log(`Default filter determined as: ${appState.filterField.alias}`)
-        }
-
-        fieldsList.appendChild(listItem);
-
-        listItem.addEventListener("calciteListItemSelect", () => {
-          if (listItem.selected){
-            appState.filterField = field;
-            console.log(`Selected field ${appState.filterField.alias}`);
-            changeFilterField(); // changing the filter field, pulling from state
-          }
-        });
-
-        listItem.addEventListener("calciteListItemClose", () => {
-          if (appState.filterField.alias === field.alias) {
-            warnUser("Please select a different filter field before removing the selected field.");
-          } else {
-            warnUser("Removing field: ", field.alias);
-          }
-          listItem.remove();
-        });
-      }
-    });
+  // we'll select list item which matches the definition expression
+  if (appState.activeDefinitionExpressionField === f.name){
+    listItem.selected = true
   }
-};
-await populateFieldsList();
+
+  // finally adding the item to the DOM list
+  fieldsList.appendChild(listItem);
+}
 
 async function changeFilterField() {
   if (!appState.filterField) {
@@ -161,14 +218,40 @@ async function changeFilterField() {
   }
 
   mapEl.map.layers.forEach(layer => {
-    if (layer.type === "feature") {
+    if (layer.type === "feature") { // only applying this to the feature layers
+      console.log(`\n--------- FILTER CHANGE -------------`);
       console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`);
       layer.definitionExpression = `${appState.filterField.name} > 0`;
       console.log(`New definition expression: ${layer.definitionExpression}`);
+      console.log('For ${layer.title} the featureEffect is:', layer.featureEffect);
+      console.log(`-------------------------------------\n`);
     }
   });
 }
 
+populateFieldsList();
+
+
+
+layerList.addEventListener("arcgisLayerReorder", (event) => {
+  const { movedLayerId, oldIndex, newIndex } = event.detail;
+  console.log(`Layer with ID ${movedLayerId} moved from ${oldIndex} to ${newIndex}`);
+  // Your logic to update renderers, etc.
+});
+
+// layerList.addEventListener("arcgisPropertyChange", () => {
+//   console.log('property change')
+// });
+
+// layerList.addEventListener("arcgisTriggerAction", () => {
+//   console.log('property change')
+// });
+
+
+
+/* 
+HELPER FUNCTIONS
+*/
 // FUNCTION FOR DIPLAYING A CALCITE WARNING MESSAGE
 function warnUser(message){
   // clear any existing warnings
@@ -188,7 +271,3 @@ function warnUser(message){
   // appending the warning to the DOM
   document.body.appendChild(newAlert);
 }
-
-
-
-
