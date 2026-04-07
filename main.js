@@ -112,7 +112,7 @@ async function populateLayerList(){
 
   // looping through the layers of the map
   // Collect definition expressions and layer titles
-  for (const layer of mapEl.map.layers) {
+  for (const layer of mapEl.map.layers.items.toReversed()) { // we have to loop through the array backwards to get the layerList proper
     if (layer.type === "feature") { // only if its a feature layer
       await layer.load();
       appState.featureLayers.push(layer);
@@ -121,13 +121,6 @@ async function populateLayerList(){
         expression: layer.definitionExpression || ""
       });
 
-      // initializing the top (blue) and bottom (red) renderers
-      appState.bottomRenderer = appState.featureLayers.at(0).renderer // bottom renderer should be red, 
-      console.log(`For layer ${appState.featureLayers.at(0).title} the bottom renderer is`, appState.bottomRenderer);
-      
-
-      appState.topRenderer = appState.featureLayers.at(-1).renderer // top renderer should be blue to mask out the red
-      console.log(`${appState.featureLayers.at(-1).title} the top renderer is`, appState.topRenderer);
 
       // list item to represent the layer
       const listItem = document.createElement("calcite-list-item");
@@ -138,7 +131,6 @@ async function populateLayerList(){
 
       // event listener for a layer's visibility toggle
       listItem.addEventListener("calciteListItemSelect", () => { // this event fires AFTER the property changes
-        const selectedLayer = mapEl.map.layers.filter(layer => layer.title === listItem.title); 
         if(listItem.selected === true) { // if a layer was not selected when clicked, it is now selected (aka visible)
           console.log('layer turned on')
           console.log('map el layers', mapEl.map.layers);
@@ -148,18 +140,24 @@ async function populateLayerList(){
           layer.visible = false;
         }
       });
-     
       // and appending it to our calcite-list
       layerList.append(listItem);
     }
   }
 
+  // initializing the top (blue) and bottom (red) renderers
+  appState.blueRenderer = appState.featureLayers.at(0).renderer // map's top renderer should be blue
+  console.log(`For layer ${appState.featureLayers.at(0).title} the top renderer is`, appState.blueRenderer); // log for debug
+  
+  appState.redRenderer = appState.featureLayers.at(-1).renderer // map's bottom renderer should be red
+  console.log(`${appState.featureLayers.at(-1).title} the bottom renderer is`, appState.redRenderer); // log for debug
+
   // event listeners for our pseudo layer list
   layerList.addEventListener("calciteListOrderChange", () => {
-    console.log("order change")
-    mapEl.map.layers.at(0).renderer = appState.topRenderer // assigning top renderer to new layer at the 0 index, aka top
-    mapEl.map.layers.at(-1).renderer = appState.bottomRenderer // assigning bottom renderer to new layer at final index, aka new bottom layer
-
+    mapEl.map.layers.reverse(); // we need to actually reverse the layer of the oders within the map itself
+    // then we need to reassign renderers 
+    mapEl.map.layers.at(-1).renderer = appState.blueRenderer // assigning bottom renderer to new layer at final index, aka new bottom layer
+    mapEl.map.layers.at(0).renderer = appState.redRenderer // assigning top renderer to new layer at the 0 index, aka top
   });
 } 
 
@@ -223,31 +221,12 @@ async function changeFilterField() {
       console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`);
       layer.definitionExpression = `${appState.filterField.name} > 0`;
       console.log(`New definition expression: ${layer.definitionExpression}`);
-      console.log('For ${layer.title} the featureEffect is:', layer.featureEffect);
       console.log(`-------------------------------------\n`);
     }
   });
 }
 
 populateFieldsList();
-
-
-
-layerList.addEventListener("arcgisLayerReorder", (event) => {
-  const { movedLayerId, oldIndex, newIndex } = event.detail;
-  console.log(`Layer with ID ${movedLayerId} moved from ${oldIndex} to ${newIndex}`);
-  // Your logic to update renderers, etc.
-});
-
-// layerList.addEventListener("arcgisPropertyChange", () => {
-//   console.log('property change')
-// });
-
-// layerList.addEventListener("arcgisTriggerAction", () => {
-//   console.log('property change')
-// });
-
-
 
 /* 
 HELPER FUNCTIONS
