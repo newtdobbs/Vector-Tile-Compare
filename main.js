@@ -3,9 +3,11 @@ const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
 import "./style.css";
 import ElevationSampler from "@arcgis/core/layers/support/ElevationSampler";
 import { appState } from "./state";
-import { createDefaultMap } from "./src/map";
+import { queryItemsFromGroup, createDefaultMap } from "./src/map";
 
 let activeWidget;
+// const mapEl = document.getElementById("mapEl")
+
 
 mapEl.addEventListener("arcgisViewReadyChange", () => {
   const { title, thumbnailUrl, snippet, modified, tags } = mapEl.map.portalItem;
@@ -35,8 +37,8 @@ const handleActionBarClick = ({ target }) => {
 };
 document.querySelector("calcite-action-bar").addEventListener("click", handleActionBarClick);
 
-
-await createDefaultMap();
+const layerItems = await queryItemsFromGroup();
+await createDefaultMap(layerItems);
 
 // // creating a map for the DOM container
 // async function createMap() {

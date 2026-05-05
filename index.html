@@ -13,8 +13,14 @@
 
   <calcite-shell content-behind>
 
+     <calcite-navigation slot="header">
+       <calcite-navigation-logo slot="logo" heading="Esri Vector Basemap Tile Statistics">
+      </calcite-navigation-logo>
+      <calcite-menu slot="content-end">
+        <calcite-button id="sign-in-button" type="button">Sign In</calcite-button>
+      </calcite-menu>
+    </calcite-navigation>
     <calcite-shell-panel id="shell-panel-nav" slot="panel-end" display-mode="float" height="l">
-
       <calcite-panel id="app-heading" hidden>
         <calcite-icon id="logo-icon" slot="header-actions-start" icon="layer-vector-tile" text-label="explore"></calcite-icon>
         <calcite-action-bar id="map-actions" slot="action-bar" layout="horizontal" expand-disabled>

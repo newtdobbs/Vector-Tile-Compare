@@ -156,3 +156,13 @@ async function populateLayerList(){
     }
   }
 }
+// for now this will only take the two most recent layers
+export async function createDefaultMap(){
+    for (const l in groupFeatureLayers){
+        // making sure the layer follows the correct naming convention, in case the group has other content
+        if(l.title.includes("Esri Vector Basemap Tile Statistics")){
+            const identifier = l.title.split("Esri Vector Basemap Tile Statistics")[1]
+            console.log('IDENTIFIER:', identifier);
+        }
+    }
+}
