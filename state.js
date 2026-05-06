@@ -1,5 +1,5 @@
 export const appState = {
-  webMap: null,
+  map: null,
   layerDefinitionExpressions: [],
   activeDefinitionExpression: null,
   activeDefinitionExpressionField: null,

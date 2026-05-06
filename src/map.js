@@ -1,4 +1,6 @@
 import PortalItem from "@arcgis/core/portal/PortalItem";
+import LocateSettingSource from "@arcgis/core/rest/support/LocateSettingSource";
+import { appState } from "../state";
 
 const [Map, MapView] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/core/views/MapView.js"]);
   const [Portal, OAuthInfo, esriId, PortalQueryParams] = await $arcgis.import([
@@ -8,6 +10,8 @@ const [Map, MapView] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/cor
     "@arcgis/core/portal/PortalQueryParams.js",
 ]);
 const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
+const FeatureEffect = await $arcgis.import("@arcgis/core/layers/support/FeatureEffect.js");
+const FeatureFilter = await $arcgis.import("@arcgis/core/layers/support/FeatureFilter.js");
 
 
 let info = new OAuthInfo({
@@ -46,28 +50,33 @@ export async function queryItemsFromGroup(){
    return results.results.filter(item => item.isLayer && item.title.includes("Esri Vector Basemap Tile Statistics"));
 };
 
-function assignLayerRenderers(originalMapLayers){
+
+function assignLayerRenderers(originalMapLayers) {
     // originalMapLayers[0] is NEWER, so it should be bottom (red)
     // originalMapLayers[1] is OLDER, so it should be bottom (blue)
-
-
-    we'll use .map() to return a NEW arrayu
-
-
     const customRenderedLayers = originalMapLayers.map(l => {
-        // assign a definition expression (default to BUILDING > 0)
-        // assign a feature effect (default: SIZE > 40000)
-        // use an if-else to assign red vs blue symbology
+        l.definitionExpression = "Building > 0"; // note: typo fixed from defintionExpression
 
-    })
-    // then change the symbology of the 
+        const featureFilter = new FeatureFilter({
+            where: "SIZE > 40000"
+        });
 
-    return customRenderedLayers
+        l.when(() => {
+            l.featureEffect = new FeatureEffect({
+                filter: featureFilter,
+                includedEffect: "bloom(1.3 0.6pt 0)",
+                excludedEffect: "opacity(0.35)"
+            });
+            console.log("Layer is ready:", l);
+        });
+    });
 
+    appState.featureLayers = customRenderedLayers;  
+
+    return customRenderedLayers;
 }
 
 export async function createDefaultMap(layerItems) {
-    // console.log('layer items', layerItems)
     let basemapTileStatistics = layerItems.map(item => {
         const identifier = item.title.slice(-7) // this grabs the year and release suffix (e.g., '2026R04')
         const year = parseInt(identifier.split("R")[0]);
@@ -82,7 +91,7 @@ export async function createDefaultMap(layerItems) {
         return b.year - a.year// otherwise we sort by year
     })
 
-    // console.log('Sorted Esri Basemap Tile Statistics: ', basemapTileStatistics) // array of PortalItems, each with a url which i can convert to feature layers
+    // console.log('Sorted Esri Basemap Tile Statistics: ', basemapTileStatistics) // log for debug
 
     const mapLayers = basemapTileStatistics.slice(0, 2).map(b => {
         console.log('item url', b.item.url)
@@ -90,24 +99,33 @@ export async function createDefaultMap(layerItems) {
             portalItem: { id: b.item.id },
             layerId: 0 // defaulting to 0-indx item in layer, will need to verify this choice
         });
-        // console.log('feature layer created', fl)
+        // console.log('feature layer created', fl) // log for debug
         return fl
     });
     
-    console.log('Layers to display in map: ', mapLayers)
-
-
+    // console.log('Layers to display in map: ', mapLayers)
+    
     const map = new Map({
         basemap: "gray-vector",
-        layers: assignLayerRenderers(mapLayers) // we'll only taje the 2 most recent
+        layers: mapLayers // we'll only taje the 2 most recent
     });
-
+    
     const view = new MapView({
         container: document.getElementById("mapEl"), // the dom element to hold our map
         map: map,
         ui: { components: [] }
     });
 
+    view.when(() => {
+        view.goTo({ 
+            target: [137.421641, 35.918028],
+            zoom: 6
+        });
+    })
+
+    await Promise.all(mapLayers.map(layer => layer.when()));
+    assignLayerRenderers(mapLayers); 
+    
     return map;
     
 }

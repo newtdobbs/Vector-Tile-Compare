@@ -38,7 +38,7 @@ const handleActionBarClick = ({ target }) => {
 document.querySelector("calcite-action-bar").addEventListener("click", handleActionBarClick);
 
 const layerItems = await queryItemsFromGroup();
-await createDefaultMap(layerItems);
+appState.map = await createDefaultMap(layerItems);
 
 // // creating a map for the DOM container
 // async function createMap() {
