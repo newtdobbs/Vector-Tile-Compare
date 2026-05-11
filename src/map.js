@@ -3,11 +3,13 @@ import LocateSettingSource from "@arcgis/core/rest/support/LocateSettingSource";
 import { appState } from "../state";
 
 const [Map, MapView] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/core/views/MapView.js"]);
-  const [Portal, OAuthInfo, esriId, PortalQueryParams] = await $arcgis.import([
+const PictureMarkerSymbol = await $arcgis.import("@arcgis/core/symbols/PictureMarkerSymbol.js");
+  const [Portal, OAuthInfo, esriId, PortalQueryParams, WebMap] = await $arcgis.import([
     "@arcgis/core/portal/Portal.js",
     "@arcgis/core/identity/OAuthInfo.js",
     "@arcgis/core/identity/IdentityManager.js",
     "@arcgis/core/portal/PortalQueryParams.js",
+    "@arcgis/core/WebMap.js"
 ]);
 const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
 const FeatureEffect = await $arcgis.import("@arcgis/core/layers/support/FeatureEffect.js");
@@ -47,31 +49,26 @@ export async function queryItemsFromGroup(){
     await portal.load();
 
    const results = await portal.queryItems(params);
-   return results.results.filter(item => item.isLayer && item.title.includes("Esri Vector Basemap Tile Statistics"));
+   const allTileStats = results.results.filter(item => item.isLayer && item.title.includes("Esri Vector Basemap Tile Statistics"));
+   console.log('All tile stats', allTileStats)
+   return allTileStats;
 };
 
 
-function assignLayerRenderers(originalMapLayers) {
-    // originalMapLayers[0] is NEWER, so it should be bottom (red)
-    // originalMapLayers[1] is OLDER, so it should be bottom (blue)
-    const customRenderedLayers = originalMapLayers.map(l => {
-        l.definitionExpression = "Building > 0"; // note: typo fixed from defintionExpression
+async function assignLayerRenderers(originalMapLayers) {
+    console.log('original map layers', originalMapLayers);
 
-        const featureFilter = new FeatureFilter({
-            where: "SIZE > 40000"
-        });
-
-        l.when(() => {
-            l.featureEffect = new FeatureEffect({
-                filter: featureFilter,
-                includedEffect: "bloom(1.3 0.6pt 0)",
-                excludedEffect: "opacity(0.35)"
-            });
-            console.log("Layer is ready:", l);
-        });
+    const webmap = new WebMap({
+        portalItem: {
+            id: "a9ea93c330f9445cb7993653ee141333"
+        }
     });
+    await webmap.load();
+    console.log('reference webmap:', webmap);
 
-    appState.featureLayers = customRenderedLayers;  
+
+    console.log('Custom rendered layers', customRenderedLayers);
+    appState.featureLayers = customRenderedLayers;
 
     return customRenderedLayers;
 }
@@ -91,24 +88,68 @@ export async function createDefaultMap(layerItems) {
         return b.year - a.year// otherwise we sort by year
     })
 
-    // console.log('Sorted Esri Basemap Tile Statistics: ', basemapTileStatistics) // log for debug
+    console.log('Sorted Esri Basemap Tile Statistics: ', basemapTileStatistics) // log for debug
 
-    const mapLayers = basemapTileStatistics.slice(0, 2).map(b => {
-        console.log('item url', b.item.url)
-        const fl = new FeatureLayer({
-            portalItem: { id: b.item.id },
-            layerId: 0 // defaulting to 0-indx item in layer, will need to verify this choice
+    const [newerItem, olderItem] = basemapTileStatistics.slice(0,2); // grabbing the two most recent tile statistics
+    console.log('newer item', newerItem)
+    console.log('older item', olderItem)
+    const newerLayer = new FeatureLayer({ portalItem: { id: newerItem.item.id } });
+    const olderLayer = new FeatureLayer({ portalItem: { id: olderItem.item.id } });
+    
+    const map = new Map({ basemap: "dark-gray-vector" });
+    map.add(newerLayer)
+    map.add(olderLayer)
+    
+    const symbolSize = 5;
+
+    console.log('assigning new (red) renderer')
+    newerLayer.when(() => {
+        newerLayer.renderer = {
+            type: "simple",
+            symbol: new PictureMarkerSymbol({
+                angle: 0,
+                height: symbolSize,
+                url: "data:image/png;base64,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",
+                width: symbolSize,
+                xoffset: 0,
+                yoffset: 0
+            })
+        };
+    });
+    console.log('assigning old (blue) renderer')
+    olderLayer.when(() => {
+        olderLayer.renderer = {
+            type: "simple",
+            symbol: new PictureMarkerSymbol({
+                angle: 0,
+                height: symbolSize,
+                url: "data:image/png;base64,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",
+                width: symbolSize,
+                xoffset: 0,
+                yoffset: 0
+            })
+        };
+    });
+
+    console.log('assigning feature filters and feature effect')
+    for (const l of [olderLayer, newerLayer]) {
+        l.definitionExpression = "Building > 0";
+        
+        const featureFilter = new FeatureFilter({
+            where: "SIZE > 40000"
         });
-        // console.log('feature layer created', fl) // log for debug
-        return fl
-    });
+        
+        l.when(() => {
+            l.featureEffect = new FeatureEffect({
+                filter: featureFilter,
+                includedEffect: "bloom(1.3 0.6pt 0)",
+                excludedEffect: "opacity(0.35)"
+            });
+        }); // Wait for layer to be ready
+        
+    }
+    console.log('after applying effecst', [olderLayer, newerLayer])
     
-    // console.log('Layers to display in map: ', mapLayers)
-    
-    const map = new Map({
-        basemap: "gray-vector",
-        layers: mapLayers // we'll only taje the 2 most recent
-    });
     
     const view = new MapView({
         container: document.getElementById("mapEl"), // the dom element to hold our map
@@ -123,8 +164,8 @@ export async function createDefaultMap(layerItems) {
         });
     })
 
-    await Promise.all(mapLayers.map(layer => layer.when()));
-    assignLayerRenderers(mapLayers); 
+    // await Promise.all(mapLayers.map(layer => layer.when()));
+    // await assignLayerRenderers(mapLayers); 
     
     return map;
     
