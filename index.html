@@ -5,7 +5,7 @@
   <title>Vector Tile Compare</title>
 
   <script type="module" src="https://js.arcgis.com/5.0/"></script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="./style.css" />
 
 </head>
 
@@ -20,28 +20,31 @@
         <calcite-button id="sign-in-button" type="button">Sign In</calcite-button>
       </calcite-menu>
     </calcite-navigation>
-    <calcite-shell-panel id="shell-panel-nav" slot="panel-end" display-mode="float" height="l">
-      <calcite-panel id="app-heading" hidden>
-        <calcite-icon id="logo-icon" slot="header-actions-start" icon="layer-vector-tile" text-label="explore"></calcite-icon>
-        <calcite-action-bar id="map-actions" slot="action-bar" layout="horizontal" expand-disabled>
-          <calcite-action icon="list-button" text="Field" data-action-id="field"></calcite-action>
-          <calcite-action icon="layers" text="Layers" data-action-id="layers"></calcite-action>
-          <calcite-action icon="basemap" text="Basemap" data-action-id="basemaps"></calcite-action>
-          <calcite-action icon="legend" text="Legend" data-action-id="legend"></calcite-action>
-          <calcite-action icon="bookmark" text="Bookmarks" data-action-id="bookmarks"></calcite-action>
-          <calcite-action icon="information" text="About" data-action-id="information"></calcite-action>
-          <calcite-button id="sign-in-button" slot="user">Sign in</calcite-button>
-          <calcite-navigation-user hidden id="nav-user" slot="user"> </calcite-navigation-user>
-        </calcite-action-bar>
-      </calcite-panel>
 
-      <!-- Map-specific blocks containing ArcGIS Maps SDK for JavaScript components -->
-      <calcite-block expanded heading="Filter Field" data-block-id="field" hidden>
+    <calcite-shell-panel display-mode="float-all" slot="panel-end">
+      <calcite-panel menu-placement="start">
+          <calcite-action-bar id="map-actions" slot="action-bar" layout="horizontal" expand-disabled>
+            <calcite-action icon="list-button" text="Field" data-action-id="field"></calcite-action>
+            <calcite-action icon="layers" text="Layers" data-action-id="layers"></calcite-action>
+            <calcite-action icon="basemap" text="Basemap" data-action-id="basemaps"></calcite-action>
+            <calcite-action icon="legend" text="Legend" data-action-id="legend"></calcite-action>
+         </calcite-action-bar>
+         <calcite-block collapsible expanded heading="Layer effects" description="Adjust blur, highlight, and more"
+         icon-start="effects">
+         <calcite-notice open>
+           <div slot="message">Use layer effects sparingly, for emphasis</div>
+          </calcite-notice>
+          <calcite-action slot="control" text="Information" icon="information"></calcite-action>
+          <div slot="header-menu-actions">
+            <calcite-action text="Information" icon="information" text-enabled></calcite-action>
+          </div>
+        </calcite-block>
+      </calcite-panel>
+      <!-- <calcite-block expanded heading="Filter Field" data-block-id="field" >
         <calcite-list id="fields-list"></calcite-list>
       </calcite-block>
       <calcite-block expanded heading="Layers" data-block-id="layers" hidden>
-        <!-- <arcgis-layer-list drag-enabled id="layer-list" reference-element="mapEl" visibility-appearance="checkbox"></arcgis-layer-list> -->
-        <calcite-list selection-mode="multiple" drag-enabled id="layer-list"></calcite-list>
+        <arcgis-layer-list drag-enabled reference-element="mapEl" visibility-appearance="checkbox"></arcgis-layer-list>
       </calcite-block>
 
       <calcite-block expanded heading="Basemaps" data-block-id="basemaps" hidden>
@@ -49,28 +52,10 @@
       </calcite-block>
       <calcite-block expanded heading="Legend" data-block-id="legend" hidden>
         <arcgis-legend legend-style="classic" reference-element="mapEl"></arcgis-legend>
-      </calcite-block>
-      <calcite-block expanded heading="Bookmarks" data-block-id="bookmarks" hidden>
-        <arcgis-bookmarks editing-enabled="false" reference-element="mapEl"></arcgis-bookmarks>
-      </calcite-block>
-
-      <!-- Info block (populates with info from the web map) -->
-      <calcite-block expanded heading="About the data" data-block-id="information" hidden>
-        <calcite-card id="card-content">
-          <img id="card-thumbnail" alt="Webmap thumbnail" slot="thumbnail" />
-          <div id="card-heading" slot="heading">
-            <!-- Dynamically populated -->
-          </div>
-          <div id="card-description" slot="description">
-            <!-- Dynamically populated -->
-          </div>
-          <div id="card-tags" slot="footer-end">
-            <!-- Dynamically populated -->
-          </div>
-        </calcite-card>
-      </calcite-block>
-
+      </calcite-block> -->
     </calcite-shell-panel>
+
+
 
     <arcgis-map id="mapEl">
 
@@ -79,7 +64,7 @@
     </arcgis-map>
 
   </calcite-shell>
-
+  <calcite-loader id="app-loader"></calcite-loader> 
 
 </body>
 <script type="module" src="/main.js"></script>

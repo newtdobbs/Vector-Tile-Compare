@@ -5,19 +5,15 @@ import ElevationSampler from "@arcgis/core/layers/support/ElevationSampler";
 import { appState } from "./state";
 import { queryItemsFromGroup, createDefaultMap } from "./src/map";
 
-let activeWidget;
-// const mapEl = document.getElementById("mapEl")
-
+const mapEl = document.getElementById("mapEl");
 
 mapEl.addEventListener("arcgisViewReadyChange", () => {
-  const { title, thumbnailUrl, snippet, modified, tags } = mapEl.map.portalItem;
-  document.getElementById("app-heading").heading = "Vector Tile Compare";
-  document.getElementById("card-heading").innerHTML = title;
-  document.getElementById("card-thumbnail").src = thumbnailUrl;
-  document.getElementById("card-description").innerHTML = `<p>${snippet}</p><p>Last modified on ${modified}.</p>`;
+  document.getElementById("app-loader").hidden = true;
   document.getElementById("app-heading").removeAttribute("hidden");
+
 });
 
+let activeWidget;
 const handleActionBarClick = ({ target }) => {
   if (target.tagName !== "CALCITE-ACTION") {
     return;
@@ -36,7 +32,6 @@ const handleActionBarClick = ({ target }) => {
   }
 };
 document.querySelector("calcite-action-bar").addEventListener("click", handleActionBarClick);
-
 const layerItems = await queryItemsFromGroup();
 appState.map = await createDefaultMap(layerItems);
 

@@ -1,6 +1,7 @@
 import PortalItem from "@arcgis/core/portal/PortalItem";
 import LocateSettingSource from "@arcgis/core/rest/support/LocateSettingSource";
 import { appState } from "../state";
+import "../style.css";
 
 const [Map, MapView] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/core/views/MapView.js"]);
 const PictureMarkerSymbol = await $arcgis.import("@arcgis/core/symbols/PictureMarkerSymbol.js");
