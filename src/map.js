@@ -91,6 +91,8 @@ export async function createDefaultMap(layerItems) {
 
     console.log('Sorted Esri Basemap Tile Statistics: ', basemapTileStatistics) // log for debug
 
+    appState.allTileLayers = basemapTileStatistics // assigning all basemap tile statistic layers to state
+
     const [newerItem, olderItem] = basemapTileStatistics.slice(0,2); // grabbing the two most recent tile statistics
     console.log('newer item', newerItem)
     console.log('older item', olderItem)
@@ -98,11 +100,9 @@ export async function createDefaultMap(layerItems) {
     const olderLayer = new FeatureLayer({ portalItem: { id: olderItem.item.id } });
     
     const map = new Map({ basemap: "dark-gray-vector" });
-    map.add(newerLayer)
-    map.add(olderLayer)
     
     const symbolSize = 5;
-
+    
     console.log('assigning new (red) renderer')
     newerLayer.when(() => {
         newerLayer.renderer = {
@@ -131,7 +131,7 @@ export async function createDefaultMap(layerItems) {
             })
         };
     });
-
+    
     console.log('assigning feature filters and feature effect')
     for (const l of [olderLayer, newerLayer]) {
         l.definitionExpression = "Building > 0";
@@ -150,7 +150,12 @@ export async function createDefaultMap(layerItems) {
         
     }
     console.log('after applying effecst', [olderLayer, newerLayer])
-    
+
+    // adding layers to map after applying effects (just to be safe with the order)
+    map.add(newerLayer)
+    map.add(olderLayer)
+
+    appState.activeFeatureLayers = [newerLayer, olderLayer];    // assigning the map's active feature layers to state
     
     const view = new MapView({
         container: document.getElementById("mapEl"), // the dom element to hold our map
@@ -167,8 +172,12 @@ export async function createDefaultMap(layerItems) {
 
     // await Promise.all(mapLayers.map(layer => layer.when()));
     // await assignLayerRenderers(mapLayers); 
-    
+    // console.log('map created', map)
+    appState.map = map;
     return map;
-    
+}
+
+export async function changeVisibleMapLayers(){
+
 }
 

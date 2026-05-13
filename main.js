@@ -4,36 +4,59 @@ import "./style.css";
 import ElevationSampler from "@arcgis/core/layers/support/ElevationSampler";
 import { appState } from "./state";
 import { queryItemsFromGroup, createDefaultMap } from "./src/map";
+import { populateFieldsList } from "./src/ui";
 
 const mapEl = document.getElementById("mapEl");
 
-mapEl.addEventListener("arcgisViewReadyChange", () => {
+const layerItems = await queryItemsFromGroup();
+await createDefaultMap(layerItems).then(() => {
   document.getElementById("app-loader").hidden = true;
-  document.getElementById("app-heading").removeAttribute("hidden");
-
 });
 
-let activeWidget;
-const handleActionBarClick = ({ target }) => {
-  if (target.tagName !== "CALCITE-ACTION") {
-    return;
-  }
-  if (activeWidget) {
-    document.querySelector(`[data-action-id=${activeWidget}]`).active = false;
-    document.querySelector(`[data-block-id=${activeWidget}]`).hidden = true;
-  }
-  const nextWidget = target.dataset.actionId;
-  if (nextWidget !== activeWidget) {
-    document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
-    document.querySelector(`[data-block-id=${nextWidget}]`).hidden = false;
-    activeWidget = nextWidget;
-  } else {
-    activeWidget = null;
-  }
-};
-document.querySelector("calcite-action-bar").addEventListener("click", handleActionBarClick);
-const layerItems = await queryItemsFromGroup();
-appState.map = await createDefaultMap(layerItems);
+const panel = document.getElementById("panel-start");
+const shellPanel = document.getElementById("shell-panel-start");
+const actions = shellPanel?.querySelectorAll("calcite-action");
+
+panel?.addEventListener("calcitePanelClose", function(event) {
+    actions?.forEach(action => (action.active = false));
+    shellPanel.collapsed = true;
+});
+
+actions?.forEach(el => {
+    el.addEventListener("click", function(event) {
+      console.log('element clicked')
+        actions?.forEach(action => (action.active = false));
+        el.active = panel.closed;
+        shellPanel.collapsed = !shellPanel.collapsed;
+        panel.closed = !panel.closed;
+        panel.heading = event.target.text;
+    });
+});
+
+// await populateLayerList();
+populateFieldsList();
+
+
+// let activeWidget;
+// const handleActionBarClick = ({ target }) => {
+//   if (target.tagName !== "CALCITE-ACTION") {
+//     return;
+//   }
+//   if (activeWidget) {
+//     document.querySelector(`[data-action-id=${activeWidget}]`).active = false;
+//     document.querySelector(`[data-block-id=${activeWidget}]`).hidden = true;
+//   }
+//   const nextWidget = target.dataset.actionId;
+//   if (nextWidget !== activeWidget) {
+//     document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
+//     document.querySelector(`[data-block-id=${nextWidget}]`).hidden = false;
+//     activeWidget = nextWidget;
+//   } else {
+//     activeWidget = null;
+//   }
+// };
+// document.querySelector("calcite-action-bar").addEventListener("click", handleActionBarClick);
+
 
 // // creating a map for the DOM container
 // async function createMap() {

@@ -3,7 +3,10 @@ export const appState = {
   layerDefinitionExpressions: [],
   activeDefinitionExpression: null,
   activeDefinitionExpressionField: null,
-  featureLayers: [],
+  allTileLayers: [],
+  defaultFilterField: 'Building',
+  filterField: null,
+  activeFeatureLayers: [],
   bottomRenderer: null, // the renderer for the bottom (RED) layer
   topRenderer: null // the renderer for the top (RED) layer
 }

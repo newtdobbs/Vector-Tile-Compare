@@ -21,25 +21,25 @@
       </calcite-menu>
     </calcite-navigation>
 
-    <calcite-shell-panel display-mode="float-all" slot="panel-end">
-      <calcite-panel menu-placement="start">
-          <calcite-action-bar id="map-actions" slot="action-bar" layout="horizontal" expand-disabled>
-            <calcite-action icon="list-button" text="Field" data-action-id="field"></calcite-action>
-            <calcite-action icon="layers" text="Layers" data-action-id="layers"></calcite-action>
-            <calcite-action icon="basemap" text="Basemap" data-action-id="basemaps"></calcite-action>
-            <calcite-action icon="legend" text="Legend" data-action-id="legend"></calcite-action>
-         </calcite-action-bar>
-         <calcite-block collapsible expanded heading="Layer effects" description="Adjust blur, highlight, and more"
-         icon-start="effects">
-         <calcite-notice open>
-           <div slot="message">Use layer effects sparingly, for emphasis</div>
-          </calcite-notice>
-          <calcite-action slot="control" text="Information" icon="information"></calcite-action>
-          <div slot="header-menu-actions">
-            <calcite-action text="Information" icon="information" text-enabled></calcite-action>
-          </div>
-        </calcite-block>
-      </calcite-panel>
+    <calcite-shell-panel slot="panel-end" id="shell-panel-start" display-mode="float-all" collapsible>
+         <calcite-action-bar slot="action-bar">
+            <calcite-action-group>
+              <calcite-action active icon="list-button" text="Field" text-enabled></calcite-action>
+              <calcite-action text="Layers" indicator icon="layers" text-enabled></calcite-action>
+              <calcite-action icon="basemap" text="Basemap" text-enabled></calcite-action>
+            </calcite-action-group>
+        </calcite-action-bar>
+        <!-- panel for the field list -->
+        <calcite-panel heading="Fields" id="panel-start" closable>
+          <calcite-list id="fields-list">
+          </calcite-list>
+        </calcite-panel>
+
+        <!-- panel for the layer list -->
+         <calcite-panel heading="Layers" id="panel-start" closable closed>
+            <calcite-list id="layer-list">
+            </calcite-list>
+        </calcite-panel>
       <!-- <calcite-block expanded heading="Filter Field" data-block-id="field" >
         <calcite-list id="fields-list"></calcite-list>
       </calcite-block>
