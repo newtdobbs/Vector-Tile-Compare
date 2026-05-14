@@ -1,12 +1,47 @@
 import { appState } from "../state";
 import { ignoreFields } from "./constants";
+// import { changeFilterField } from "./map"
 
 
 // dom elements
 const fieldsList = document.getElementById("fields-list");
 const layerList = document.getElementById("layer-list");
 const mapEl = document.getElementById("mapEl")
+const actionBar = document.getElementById("action-bar")
 mapEl.map = appState.map;
+
+
+
+
+function handleActionBarClick({ target }) {
+  console.log('target', target.dataset.actionId)
+  const panelToOpen = target.dataset.actionId
+  document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
+    if (panelEl.dataset.panelId === panelToOpen) {
+
+      panelEl.closed = false;
+      panelEl.hidden = false;
+    } else {
+      panelEl.closed = true;
+      panelEl.hidden = true; 
+    }
+  });
+}
+document.getElementById("action-bar").addEventListener("click", handleActionBarClick);
+
+export function setupPanelCloseHandlers() {
+  document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
+    panelEl.addEventListener("calcitePanelClose", () => {
+      const actionEl = document.querySelector(`[data-action-id=${appState.activeWidget}]`);
+      if (actionEl) {
+        actionEl.active = false;
+        actionEl.setFocus();
+      }
+      appState.activeWidget = null;
+    });
+  });
+}
+
 
 // populating the fields list based on the first layer
 export function populateFieldsList(){
@@ -15,14 +50,13 @@ export function populateFieldsList(){
   const firstLayer = appState.map.layers.items[0]
   firstLayer.when(() => {
     firstLayer.fields.forEach(field => { // we'll just use the first layer by default
-          if (!ignoreFields.includes(field.name)) {
-            createListItemForField(field);
-          }
-        });
+      if (!ignoreFields.includes(field.name)) {
+        createListItemForField(field);
+      }
     });
-  };
-  //   });
-// }
+  });
+};
+
 
 function createListItemForField(f){
  // creating a calcite list item for the field        
@@ -53,13 +87,11 @@ function createListItemForField(f){
     }
   });
 
-  // we'll select list item which matches the definition expression
-  if (f.name === appState.defaultFilterField){
+  if (f.name === appState.defaultFilterField){ //select list item which matches the definition expression
     listItem.selected = true
   }
-
-  // finally adding the item to the DOM list
-  fieldsList.appendChild(listItem);
+  
+  fieldsList.appendChild(listItem); // finally adding the item to the DOM list
 }
 
 

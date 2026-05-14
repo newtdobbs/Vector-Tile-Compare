@@ -17,21 +17,6 @@ const panel = document.getElementById("panel-start");
 const shellPanel = document.getElementById("shell-panel-start");
 const actions = shellPanel?.querySelectorAll("calcite-action");
 
-panel?.addEventListener("calcitePanelClose", function(event) {
-    actions?.forEach(action => (action.active = false));
-    shellPanel.collapsed = true;
-});
-
-actions?.forEach(el => {
-    el.addEventListener("click", function(event) {
-      console.log('element clicked')
-        actions?.forEach(action => (action.active = false));
-        el.active = panel.closed;
-        shellPanel.collapsed = !shellPanel.collapsed;
-        panel.closed = !panel.closed;
-        panel.heading = event.target.text;
-    });
-});
 
 // await populateLayerList();
 populateFieldsList();

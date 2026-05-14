@@ -21,38 +21,51 @@
       </calcite-menu>
     </calcite-navigation>
 
-    <calcite-shell-panel slot="panel-end" id="shell-panel-start" display-mode="float-all" collapsible>
-         <calcite-action-bar slot="action-bar">
+    <calcite-shell-panel slot="panel-start" id="shell-panel" collapsible>
+         <calcite-action-bar id="action-bar" slot="action-bar">
             <calcite-action-group>
-              <calcite-action active icon="list-button" text="Field" text-enabled></calcite-action>
-              <calcite-action text="Layers" indicator icon="layers" text-enabled></calcite-action>
-              <calcite-action icon="basemap" text="Basemap" text-enabled></calcite-action>
+              <calcite-action active data-action-id="fields-panel" icon="list-button" text="Field" text-enabled></calcite-action>
+              <calcite-action data-action-id="layers-panel" text="Layers" icon="layers" text-enabled></calcite-action>
+              <calcite-action data-action-id="basemap-panel" icon="basemap" text="Basemap" text-enabled></calcite-action>
             </calcite-action-group>
         </calcite-action-bar>
         <!-- panel for the field list -->
-        <calcite-panel heading="Fields" id="panel-start" closable>
+        <calcite-panel data-panel-id="fields-panel" heading="Fields" id="fields-panel" closable>
           <calcite-list id="fields-list">
           </calcite-list>
         </calcite-panel>
 
         <!-- panel for the layer list -->
-         <calcite-panel heading="Layers" id="panel-start" closable closed>
-            <calcite-list id="layer-list">
-            </calcite-list>
-        </calcite-panel>
-      <!-- <calcite-block expanded heading="Filter Field" data-block-id="field" >
-        <calcite-list id="fields-list"></calcite-list>
-      </calcite-block>
-      <calcite-block expanded heading="Layers" data-block-id="layers" hidden>
-        <arcgis-layer-list drag-enabled reference-element="mapEl" visibility-appearance="checkbox"></arcgis-layer-list>
-      </calcite-block>
+        <calcite-panel data-panel-id="layers-panel" heading="Layers" id="layers-panel" closed hidden closable>
+        
+          <calcite-list selection-mode="multiple" display-mode="nested" label="Both Layers" id="layer-list">
+      
+            <calcite-list-item expanded label="Top Layer (Blue)" value="topLayer" selected>
+                <calcite-list selection-mode="single" label="Top Layer Items">
+                    <calcite-list-item label="Hiking trails" value="hiking-trails"></calcite-list-item>
+                    <calcite-list-item label="Multi-use trails" value="multi-use-trails"></calcite-list-item>
+                    <calcite-list-item label="Boardwalks" value="boardwalks"></calcite-list-item>
+                    <calcite-list-item label="Interpretive trails" value="interpretive-trails"></calcite-list-item>
+                </calcite-list>
+            </calcite-list-item>
+      
+            <calcite-list-item expanded label="Bottom Layer (Red)" value="bottomLayer" selected>
+                <calcite-list selection-mode="single-persist" label="Bottom Layer Items">
+                  <calcite-list-item label="Hiking trails" value="hiking-trails"></calcite-list-item>
+                  <calcite-list-item label="Multi-use trails" value="multi-use-trails"></calcite-list-item>
+                  <calcite-list-item label="Boardwalks" value="boardwalks"></calcite-list-item>
+                  <calcite-list-item label="Interpretive trails" value="interpretive-trails"></calcite-list-item>
+                </calcite-list>
+            </calcite-list-item>
+      
+          </calcite-list>
+        
+      </calcite-panel>
 
-      <calcite-block expanded heading="Basemaps" data-block-id="basemaps" hidden>
-        <arcgis-basemap-gallery reference-element="mapEl"></arcgis-basemap-gallery>
-      </calcite-block>
-      <calcite-block expanded heading="Legend" data-block-id="legend" hidden>
-        <arcgis-legend legend-style="classic" reference-element="mapEl"></arcgis-legend>
-      </calcite-block> -->
+        <!-- panel for basemaps -->
+        <calcite-panel data-panel-id="basemap-panel" heading="Basemap" id="basemap-panel" closed hidden closable>
+            <arcgis-basemap-gallery reference-element="mapEl"></arcgis-basemap-gallery>
+        </calcite-panel>
     </calcite-shell-panel>
 
 

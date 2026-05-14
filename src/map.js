@@ -176,7 +176,9 @@ export async function createDefaultMap(layerItems) {
     appState.map = map;
     return map;
 }
+// export async function changeFilterField(){
 
+// }
 export async function changeVisibleMapLayers(){
 
 }
