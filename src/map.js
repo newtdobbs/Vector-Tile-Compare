@@ -52,6 +52,7 @@ export async function queryItemsFromGroup(){
    const results = await portal.queryItems(params);
    const allTileStats = results.results.filter(item => item.isLayer && item.title.includes("Esri Vector Basemap Tile Statistics"));
    console.log('All tile stats', allTileStats)
+
    return allTileStats;
 };
 
@@ -92,12 +93,15 @@ export async function createDefaultMap(layerItems) {
     console.log('Sorted Esri Basemap Tile Statistics: ', basemapTileStatistics) // log for debug
 
     appState.allTileLayers = basemapTileStatistics // assigning all basemap tile statistic layers to state
+    console.log("ASSINGING APP STATE ALL TILE LAYERS AS", appState.allTileLayers)
 
     const [newerItem, olderItem] = basemapTileStatistics.slice(0,2); // grabbing the two most recent tile statistics
-    console.log('newer item', newerItem)
-    console.log('older item', olderItem)
     const newerLayer = new FeatureLayer({ portalItem: { id: newerItem.item.id } });
+    appState.bottomLayer = newerLayer;// assigning the bottom layer to the newer one
+    console.log('APP STATE BOTTOM LAYER', appState.bottomLayer)
     const olderLayer = new FeatureLayer({ portalItem: { id: olderItem.item.id } });
+    appState.topLayer = olderLayer; // and assigning the top layer to the older one 
+    console.log('APP STATE TOP LAYER', appState.topLayer)
     
     const map = new Map({ basemap: "dark-gray-vector" });
     

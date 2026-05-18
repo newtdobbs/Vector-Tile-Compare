@@ -4,7 +4,8 @@ import "./style.css";
 import ElevationSampler from "@arcgis/core/layers/support/ElevationSampler";
 import { appState } from "./state";
 import { queryItemsFromGroup, createDefaultMap } from "./src/map";
-import { populateFieldsList } from "./src/ui";
+import { populateFieldsList, populateLayerList } from "./src/ui";
+import { topLayerList, bottomLayerList } from "./src/ui";
 
 const mapEl = document.getElementById("mapEl");
 
@@ -18,8 +19,12 @@ const shellPanel = document.getElementById("shell-panel-start");
 const actions = shellPanel?.querySelectorAll("calcite-action");
 
 
-// await populateLayerList();
-populateFieldsList();
+
+await populateFieldsList();
+
+populateLayerList(topLayerList, appState.topLayer);
+populateLayerList(bottomLayerList, appState.bottomLayer);
+
 
 
 // let activeWidget;

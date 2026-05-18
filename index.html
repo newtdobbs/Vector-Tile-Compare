@@ -37,28 +37,19 @@
 
         <!-- panel for the layer list -->
         <calcite-panel data-panel-id="layers-panel" heading="Layers" id="layers-panel" closed hidden closable>
-        
-          <calcite-list selection-mode="multiple" display-mode="nested" label="Both Layers" id="layer-list">
-      
-            <calcite-list-item expanded label="Top Layer (Blue)" value="topLayer" selected>
-                <calcite-list selection-mode="single" label="Top Layer Items">
-                    <calcite-list-item label="Hiking trails" value="hiking-trails"></calcite-list-item>
-                    <calcite-list-item label="Multi-use trails" value="multi-use-trails"></calcite-list-item>
-                    <calcite-list-item label="Boardwalks" value="boardwalks"></calcite-list-item>
-                    <calcite-list-item label="Interpretive trails" value="interpretive-trails"></calcite-list-item>
-                </calcite-list>
-            </calcite-list-item>
-      
-            <calcite-list-item expanded label="Bottom Layer (Red)" value="bottomLayer" selected>
-                <calcite-list selection-mode="single-persist" label="Bottom Layer Items">
-                  <calcite-list-item label="Hiking trails" value="hiking-trails"></calcite-list-item>
-                  <calcite-list-item label="Multi-use trails" value="multi-use-trails"></calcite-list-item>
-                  <calcite-list-item label="Boardwalks" value="boardwalks"></calcite-list-item>
-                  <calcite-list-item label="Interpretive trails" value="interpretive-trails"></calcite-list-item>
-                </calcite-list>
-            </calcite-list-item>
-      
-          </calcite-list>
+        <calcite-list label="layers" display-mode="nested" selection-mode="multiple" id="layer-list">
+          <calcite-list-item selected expanded label="top-list-item">
+            <calcite-list selection-mode="single" id="top-list">
+
+            </calcite-list>
+          </calcite-list-item>
+          <calcite-list-item selected expanded label="bottom-list-item">
+            <calcite-list selection-mode="single" id="bottom-list">
+  
+            </calcite-list>
+          </calcite-list-item>
+        </calcite-list>
+
         
       </calcite-panel>
 
