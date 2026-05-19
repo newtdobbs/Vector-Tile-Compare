@@ -10,6 +10,7 @@ export const topLayerList = document.getElementById("top-list");
 export const bottomLayerList = document.getElementById("bottom-list");
 const mapEl = document.getElementById("mapEl")
 const actionBar = document.getElementById("action-bar")
+const resetListsButton = document.getElementById("reset-list-button")
 mapEl.map = appState.map;
 
 function handleActionBarClick({ target }) {
@@ -107,10 +108,15 @@ export async function populateFieldsList(){
   });
 };
 
+
+
 export function populateLayerList(list, layerKey){
+  // first clearing the lists's html for reuse
+  list.innerHTML = "";
+
+
+  // functionality for toggling a layer's visibility using the outer layer list item
   const outerListItem = document.getElementById(`${list.id}-item`);
-  
-  // functionality for toggling a layer's visibility
   outerListItem.addEventListener("calciteListItemSelect", (event) => {
     if(event.target === outerListItem){
       const layerToAdjust = appState[layerKey]
@@ -122,13 +128,15 @@ export function populateLayerList(list, layerKey){
     }
   });
   
-  // populating the list with list items for each tile layer 
+  // populating the inner list with list items for each tile layer 
+  
   for (const layer of appState.allTileLayers) {
     //  list item to represent the layer
     const listItem = document.createElement("calcite-list-item");
     listItem.label = layer.item.title;
     listItem.scale = "l";
     listItem.value = layer.item.title;
+    listItem.closable = true;
     
     if (layer.item.title === appState[layerKey].title) {
       listItem.selected = true; // selecting the layers which are present by default
@@ -151,6 +159,10 @@ export function populateLayerList(list, layerKey){
   // adding an event listener for toggling the list's visibility
 }
 
+resetListsButton.addEventListener("click", function() {
+  populateLayerList(topLayerList, "topLayer");
+  populateLayerList(bottomLayerList, "bottomLayer");
+});
 
 // export async function populateLayerList(){
 //   appState.layerDefinitionExpressions = []; // clearing pre-existing defintino expressions
