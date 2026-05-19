@@ -51,29 +51,11 @@ export async function queryItemsFromGroup(){
 
    const results = await portal.queryItems(params);
    const allTileStats = results.results.filter(item => item.isLayer && item.title.includes("Esri Vector Basemap Tile Statistics"));
-   console.log('All tile stats', allTileStats)
+//    console.log('All tile stats', allTileStats)
 
    return allTileStats;
 };
 
-
-async function assignLayerRenderers(originalMapLayers) {
-    console.log('original map layers', originalMapLayers);
-
-    const webmap = new WebMap({
-        portalItem: {
-            id: "a9ea93c330f9445cb7993653ee141333"
-        }
-    });
-    await webmap.load();
-    console.log('reference webmap:', webmap);
-
-
-    console.log('Custom rendered layers', customRenderedLayers);
-    appState.featureLayers = customRenderedLayers;
-
-    return customRenderedLayers;
-}
 
 export async function createDefaultMap(layerItems) {
     let basemapTileStatistics = layerItems.map(item => {
@@ -93,23 +75,22 @@ export async function createDefaultMap(layerItems) {
     console.log('Sorted Esri Basemap Tile Statistics: ', basemapTileStatistics) // log for debug
 
     appState.allTileLayers = basemapTileStatistics // assigning all basemap tile statistic layers to state
-    console.log("ASSINGING APP STATE ALL TILE LAYERS AS", appState.allTileLayers)
+    // console.log("ASSINGING APP STATE ALL TILE LAYERS AS", appState.allTileLayers)
 
     const [newerItem, olderItem] = basemapTileStatistics.slice(0,2); // grabbing the two most recent tile statistics
-    const newerLayer = new FeatureLayer({ portalItem: { id: newerItem.item.id } });
-    appState.bottomLayer = newerLayer;// assigning the bottom layer to the newer one
-    console.log('APP STATE BOTTOM LAYER', appState.bottomLayer)
-    const olderLayer = new FeatureLayer({ portalItem: { id: olderItem.item.id } });
-    appState.topLayer = olderLayer; // and assigning the top layer to the older one 
-    console.log('APP STATE TOP LAYER', appState.topLayer)
+    appState.bottomLayer = new FeatureLayer({ portalItem: { id: newerItem.item.id } });;// assigning the bottom layer to the newer one
+    // console.log('APP STATE BOTTOM LAYER', appState.bottomLayer)
+   
+    appState.topLayer = new FeatureLayer({ portalItem: { id: olderItem.item.id } });; // and assigning the top layer to the older one 
+    // console.log('APP STATE TOP LAYER', appState.topLayer)
     
     const map = new Map({ basemap: "dark-gray-vector" });
     
     const symbolSize = 5;
     
-    console.log('assigning new (red) renderer')
-    newerLayer.when(() => {
-        newerLayer.renderer = {
+    // console.log('assigning new (red) renderer for the bottom layer')
+    appState.bottomLayer.when(() => {
+        appState.bottomLayer.renderer = {
             type: "simple",
             symbol: new PictureMarkerSymbol({
                 angle: 0,
@@ -121,9 +102,9 @@ export async function createDefaultMap(layerItems) {
             })
         };
     });
-    console.log('assigning old (blue) renderer')
-    olderLayer.when(() => {
-        olderLayer.renderer = {
+    // console.log('assigning old (blue) renderer for the top layer')
+    appState.topLayer.when(() => {
+        appState.topLayer.renderer = {
             type: "simple",
             symbol: new PictureMarkerSymbol({
                 angle: 0,
@@ -136,8 +117,8 @@ export async function createDefaultMap(layerItems) {
         };
     });
     
-    console.log('assigning feature filters and feature effect')
-    for (const l of [olderLayer, newerLayer]) {
+    // console.log('assigning feature filters and feature effect')
+    for (const l of [appState.topLayer, appState.bottomLayer]) {
         l.definitionExpression = "Building > 0";
         
         const featureFilter = new FeatureFilter({
@@ -153,13 +134,10 @@ export async function createDefaultMap(layerItems) {
         }); // Wait for layer to be ready
         
     }
-    console.log('after applying effecst', [olderLayer, newerLayer])
 
     // adding layers to map after applying effects (just to be safe with the order)
-    map.add(newerLayer)
-    map.add(olderLayer)
-
-    appState.activeFeatureLayers = [newerLayer, olderLayer];    // assigning the map's active feature layers to state
+    map.add(appState.bottomLayer)
+    map.add(appState.topLayer)
     
     const view = new MapView({
         container: document.getElementById("mapEl"), // the dom element to hold our map
@@ -174,16 +152,29 @@ export async function createDefaultMap(layerItems) {
         });
     })
 
-    // await Promise.all(mapLayers.map(layer => layer.when()));
-    // await assignLayerRenderers(mapLayers); 
-    // console.log('map created', map)
     appState.map = map;
     return map;
 }
-// export async function changeFilterField(){
+export async function changeFilterField(){
 
-// }
-export async function changeVisibleMapLayers(){
+}
 
+export async function changeMapLayers(layerToRemove, layerToAdd){
+    // this should just use toplayer or bottom layer as an arg and pull from state
+    console.log(`app state ${layerToRemove} before change`, appState[layerToRemove])
+    
+    // create a feature layer for it
+    console.log('layer to add', layerToAdd)
+    const replacementLayer = new FeatureLayer({ portalItem: layerToAdd })
+    // assign the relevant renderer to it
+    replacementLayer.when(() => {
+        console.log('replacement layer is ready')
+       replacementLayerrenderer = appState[layerToRemove].renderer 
+    });
+    console.log('REPLACEMENT LAYER', replacementLayer)
+    // assign it to state
+    appState[layerToRemove] = replacementLayer;
+    // recreate the map with the new layer
+    console.log(`app state ${layerToRemove} after change`, appState[layerToRemove])
 }
 

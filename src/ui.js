@@ -1,6 +1,6 @@
 import { appState } from "../state";
 import { ignoreFields } from "./constants";
-// import { changeFilterField } from "./map"
+import { changeFilterField, changeMapLayers } from "./map"
 
 
 // dom elements
@@ -46,7 +46,7 @@ export function setupPanelCloseHandlers() {
 function enforceSingleSelection(listName) {
   // const list = document.getElementById(listId);
     listName.addEventListener("calciteListItemSelect", (event) => {
-      const selectedItems = list.querySelectorAll("calcite-list-item[selected]");
+      const selectedItems = listName.querySelectorAll("calcite-list-item[selected]");
       if (selectedItems.length > 1) {
         selectedItems.forEach((item) => {
           if (item !== event.target) {
@@ -92,15 +92,6 @@ function createListItemForField(f){
   
   fieldsList.appendChild(listItem); // finally adding the item to the DOM list
 }
-  
-// export function populateOuterList(){
-//   layerList.addEventListener("calciteListChange", (event) => {
-//     const outerItems = layerList.querySelectorAll('calcite-list-item[selection-mode="multiple"]')
-//     console.log('OUTER ITEMS', outerItems);
-//     const activeOuterItems = outerItems.filter(item => layerList.selectedItems.includes(item));
-//     console.log('outer list selection', activeOuterItems);
-//   })
-// }
 
 // populating the fields list based on the first layer
 export async function populateFieldsList(){
@@ -116,20 +107,19 @@ export async function populateFieldsList(){
   });
 };
 
-function populateOuterList(){
+export function populateLayerList(list, relevantStateLayer){
+  const outerListItem = document.getElementById(`${list.id}-item`);
 
-}
-
-export function populateLayerList(list, layerToSelect){
-  // console.log('PULLING TILE LAYERS FROM STATE', appState.allTileLayers)
-  const outerListItme = document.getElementById(`list${-item}`)
+  // functionality for toggling a layer's visibility
+  outerListItem.addEventListener("calciteListItemSelect", (event) => {
+    if(event.target === outerListItem){
+      const layerToAdjust = appState.map.layers.filter(layer => layer.title === relevantStateLayer.title).items[0];
+      const visibility = outerListItem.selected ? true : false; 
+      console.log('Turning layer', layerToAdjust.title, 'to visibility', visibility);
+      layerToAdjust.visible = visibility;
+    }
+  });
   
-  console.log('attaching visibilitt listener for list: ', list)
-  
-  list.addEventListener("calciteListChange",() => {
-    console.log(`Visibility changed for ${list.id}`)}
-  )
-   
   // populating the list with list items for each tile layer 
   for (const layer of appState.allTileLayers) {
     //  list item to represent the layer
@@ -138,12 +128,15 @@ export function populateLayerList(list, layerToSelect){
     listItem.scale = "l";
     listItem.value = layer.item.title;
     
-    if (layer.item.title === layerToSelect.title) {
+    if (layer.item.title === relevantStateLayer.title) {
       listItem.selected = true; // selecting the layers which are present by default
     }
     // event listener for a layer's visibility toggle
     listItem.addEventListener("calciteListItemSelect", () => { // this event fires AFTER the property changes
-      console.log(`Layer selected for ${list.id}: ${listItem.label}`)
+      console.log('New layer to display', layer)
+      const layerToRemove =  list.id === "top-list" ? "topLayer" : "bottomLayer"
+      // console.log('layer to remove: ', layerToRemove)
+      changeMapLayers(layerToRemove, layer.item);
     });
     // and appending it to our calcite-list
     list.append(listItem);
