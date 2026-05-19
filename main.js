@@ -22,8 +22,8 @@ const actions = shellPanel?.querySelectorAll("calcite-action");
 
 await populateFieldsList();
 
-populateLayerList(topLayerList, appState.topLayer);
-populateLayerList(bottomLayerList, appState.bottomLayer);
+populateLayerList(topLayerList, "topLayer");
+populateLayerList(bottomLayerList, "bottomLayer");
 
 
 

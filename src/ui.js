@@ -107,13 +107,15 @@ export async function populateFieldsList(){
   });
 };
 
-export function populateLayerList(list, relevantStateLayer){
+export function populateLayerList(list, layerKey){
   const outerListItem = document.getElementById(`${list.id}-item`);
-
+  
   // functionality for toggling a layer's visibility
   outerListItem.addEventListener("calciteListItemSelect", (event) => {
     if(event.target === outerListItem){
-      const layerToAdjust = appState.map.layers.filter(layer => layer.title === relevantStateLayer.title).items[0];
+      const layerToAdjust = appState[layerKey]
+      console.log('layer to adjust', layerToAdjust);
+      //  = appState.map.layers.filter(layer => layer.title === relevantStateLayer.title).items[0];
       const visibility = outerListItem.selected ? true : false; 
       console.log('Turning layer', layerToAdjust.title, 'to visibility', visibility);
       layerToAdjust.visible = visibility;
@@ -128,11 +130,14 @@ export function populateLayerList(list, relevantStateLayer){
     listItem.scale = "l";
     listItem.value = layer.item.title;
     
-    if (layer.item.title === relevantStateLayer.title) {
+    if (layer.item.title === appState[layerKey].title) {
       listItem.selected = true; // selecting the layers which are present by default
     }
     // event listener for a layer's visibility toggle
     listItem.addEventListener("calciteListItemSelect", () => { // this event fires AFTER the property changes
+      if (!listItem.selected){
+        return // returning for deselection events
+      }
       console.log('New layer to display', layer)
       const layerToRemove =  list.id === "top-list" ? "topLayer" : "bottomLayer"
       // console.log('layer to remove: ', layerToRemove)
