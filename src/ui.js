@@ -100,8 +100,8 @@ export async function populateFieldsList(){
 // }
 
 export function populateLayerList(){
-  const list = document.getElementById("test-list")
-  list.innerHTML = "";
+  layerList.innerHTML = "";
+  appState.currentSelectedLayers = [];
   for (const layer of appState.allTileLayers) {
     //  list item to represent the layer
     const listItem = document.createElement("calcite-list-item");
@@ -121,86 +121,95 @@ export function populateLayerList(){
 
 
     listItem.addEventListener("calciteListItemSelect", () => {
-      console.log(`There are currenly ${appState.currentSelectedLayers.length} selected items`)
-      if(appState.currentSelectedLayers.length >= appState.maxLayerListSelectedItems){
-        listItem.selected = false; // ignoring selection events when there's already 2 items selected
-      }
+      if(!listItem.selected){ // deselection event
+        appState.currentSelectedLayers = appState.currentSelectedLayers.filter(l => l.label !== listItem.label); 
+        console.log('removing from', listItem.label, 'from state selection:')
+      } else{
+          if(appState.currentSelectedLayers.length >= appState.maxLayerListSelectedItems){
+            listItem.selected = false; // ignoring selection events when there's already 2 items selected
+          } else {
+
+            listItem.selected = true; // ignoring selection events when there's already 2 items selected
+            appState.currentSelectedLayers.push(listItem);
+          }
+        }
+      console.log('state selection', appState.currentSelectedLayers )
     })
     // and appending it to our calcite-list
-    list.append(listItem);
+    layerList.append(listItem);
   }
 
 
 }
 
-// populating the inner list with list items for each tile layer 
-export function oldpopulateLayerList(list, layerKey){
-  // first clearing the lists's html for reuse
-  list.innerHTML = "";
+// // populating the inner list with list items for each tile layer 
+// export function oldpopulateLayerList(list, layerKey){
+//   // first clearing the lists's html for reuse
+//   list.innerHTML = "";
 
-  // functionality for toggling a layer's visibility using the outer layer list item
-  const outerListItem = document.getElementById(`${list.id}-item`);
-  outerListItem.addEventListener("calciteListItemSelect", (event) => {
-    if(event.target === outerListItem){
-      const layerToAdjust = appState[layerKey]
-      console.log('layer to adjust', layerToAdjust);
-      //  = appState.map.layers.filter(layer => layer.title === relevantStateLayer.title).items[0];
-      const visibility = outerListItem.selected ? true : false; 
-      console.log('Turning layer', layerToAdjust.title, 'to visibility', visibility);
-      layerToAdjust.visible = visibility;
-    }
-  });
+//   // functionality for toggling a layer's visibility using the outer layer list item
+//   const outerListItem = document.getElementById(`${list.id}-item`);
+//   outerListItem.addEventListener("calciteListItemSelect", (event) => {
+//     if(event.target === outerListItem){
+//       const layerToAdjust = appState[layerKey]
+//       console.log('layer to adjust', layerToAdjust);
+//       //  = appState.map.layers.filter(layer => layer.title === relevantStateLayer.title).items[0];
+//       const visibility = outerListItem.selected ? true : false; 
+//       console.log('Turning layer', layerToAdjust.title, 'to visibility', visibility);
+//       layerToAdjust.visible = visibility;
+//     }
+//   });
   
 
 
-  for (const layer of appState.allTileLayers) {
-    //  list item to represent the layer
-    const listItem = document.createElement("calcite-list-item");
-    listItem.label = layer.item.title;
-    listItem.scale = "l";
-    listItem.value = layer.item.title;
-    listItem.closable = true;
+//   for (const layer of appState.allTileLayers) {
+//     //  list item to represent the layer
+//     const listItem = document.createElement("calcite-list-item");
+//     listItem.label = layer.item.title;
+//     listItem.scale = "l";
+//     listItem.value = layer.item.title;
+//     listItem.closable = true;
     
-    if (layer.item.title === appState[layerKey].title) {
-      listItem.selected = true; // selecting the layers which are present by default
-    }
-    // event listener for a layer's visibility toggle
-    listItem.addEventListener("calciteListItemSelect", () => { // this event fires AFTER the property changes
-      if (!listItem.selected){
-        return // returning for deselection events
-      }
-      enforceSingleSelection(listItem.label)
-      console.log('New layer to display', layer)
-      const layerToRemove =  list.id === "top-list" ? "topLayer" : "bottomLayer"
-      // console.log('layer to remove: ', layerToRemove)
-      changeMapLayers(layerToRemove, layer.item);
-    });
+//     if (layer.item.title === appState[layerKey].title) {
+//       listItem.selected = true; // selecting the layers which are present by default
+//     }
+//     // event listener for a layer's visibility toggle
+//     listItem.addEventListener("calciteListItemSelect", () => { // this event fires AFTER the property changes
+//       if (!listItem.selected){
+//         return // returning for deselection events
+//       }
+//       enforceSingleSelection(listItem.label)
+//       console.log('New layer to display', layer)
+//       const layerToRemove =  list.id === "top-list" ? "topLayer" : "bottomLayer"
+//       // console.log('layer to remove: ', layerToRemove)
+//       changeMapLayers(layerToRemove, layer.item);
+//     });
 
-    // adding an event listener to preserve single selection
-      listItem.addEventListener("calciteListItemClose", () => {
-      if (listItem.selected) {
-        console.log("REMOVING SELECTED ITEM", listItem.label);
-      } else {
-        console.log("layer removed:", listItem.label);
-      }
+//     // adding an event listener to preserve single selection
+//       listItem.addEventListener("calciteListItemClose", () => {
+//       if (listItem.selected) {
+//         console.log("REMOVING SELECTED ITEM", listItem.label);
+//       } else {
+//         console.log("layer removed:", listItem.label);
+//       }
 
-      // Remove the item
-      listItem.remove();
+//       // Remove the item
+//       listItem.remove();
 
-      // Re-enforce single selection mode for the inner list
-      const parentList = listItem.closest("calcite-list");
-      if (parentList) {
-        parentList.selectionMode = "single";
-      }
-    });
+//       // Re-enforce single selection mode for the inner list
+//       const parentList = listItem.closest("calcite-list");
+//       if (parentList) {
+//         parentList.selectionMode = "single";
+//       }
+//     });
 
-    // and appending it to our calcite-list
-    list.append(listItem);
-  }
+//     // and appending it to our calcite-list
+//     list.append(listItem);
+//   }
 
-  list.selectionMode = "single-persist";  // explicitly setting the list's selection mode
-  // adding an event listener for toggling the list's visibility
-}
+//   list.selectionMode = "single-persist";  // explicitly setting the list's selection mode
+//   // adding an event listener for toggling the list's visibility
+// }
 
 resetListsButton.addEventListener("click", function() {
   populateLayerList(topLayerList, "topLayer");
