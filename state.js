@@ -12,4 +12,6 @@ export const appState = {
   topRenderer: null, // the renderer for the top (BLUE) layer,
   bottomLayer: null,
   bottomRenderer: null, // the renderer for the bottom (RED) layer
+  maxLayerListSelectedItems: 2,
+  currentSelectedLayers: []
 }

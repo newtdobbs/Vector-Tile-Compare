@@ -44,19 +44,6 @@ export function setupPanelCloseHandlers() {
   });
 }
 
-function enforceSingleSelection(listName) {
-  // const list = document.getElementById(listId);
-    listName.addEventListener("calciteListItemSelect", (event) => {
-      const selectedItems = listName.querySelectorAll("calcite-list-item[selected]");
-      if (selectedItems.length > 1) {
-        selectedItems.forEach((item) => {
-          if (item !== event.target) {
-            item.selected = false;
-          }
-        });
-      }
-    });
-}
 
 function createListItemForField(f){
  // creating a calcite list item for the field        
@@ -108,12 +95,48 @@ export async function populateFieldsList(){
   });
 };
 
+// function enforceSingleSelection(listOfLayers){
+  
+// }
+
+export function populateLayerList(){
+  const list = document.getElementById("test-list")
+  list.innerHTML = "";
+  for (const layer of appState.allTileLayers) {
+    //  list item to represent the layer
+    const listItem = document.createElement("calcite-list-item");
+    listItem.label = layer.item.title;
+    listItem.scale = "l";
+    listItem.value = layer.item.title;
+    listItem.closable = true;
+    
+    // selecting the items corresponding to the top layer and bottom layer
+    if (layer.item.title === appState.topLayer.title || layer.item.title === appState.bottomLayer.title){
+      listItem.selected = true;
+    } 
+   
+    if(listItem.selected) {
+      appState.currentSelectedLayers.push(listItem);
+    }
 
 
-export function populateLayerList(list, layerKey){
+    listItem.addEventListener("calciteListItemSelect", () => {
+      console.log(`There are currenly ${appState.currentSelectedLayers.length} selected items`)
+      if(appState.currentSelectedLayers.length >= appState.maxLayerListSelectedItems){
+        listItem.selected = false; // ignoring selection events when there's already 2 items selected
+      }
+    })
+    // and appending it to our calcite-list
+    list.append(listItem);
+  }
+
+
+}
+
+// populating the inner list with list items for each tile layer 
+export function oldpopulateLayerList(list, layerKey){
   // first clearing the lists's html for reuse
   list.innerHTML = "";
-
 
   // functionality for toggling a layer's visibility using the outer layer list item
   const outerListItem = document.getElementById(`${list.id}-item`);
@@ -128,8 +151,8 @@ export function populateLayerList(list, layerKey){
     }
   });
   
-  // populating the inner list with list items for each tile layer 
-  
+
+
   for (const layer of appState.allTileLayers) {
     //  list item to represent the layer
     const listItem = document.createElement("calcite-list-item");
@@ -146,16 +169,36 @@ export function populateLayerList(list, layerKey){
       if (!listItem.selected){
         return // returning for deselection events
       }
+      enforceSingleSelection(listItem.label)
       console.log('New layer to display', layer)
       const layerToRemove =  list.id === "top-list" ? "topLayer" : "bottomLayer"
       // console.log('layer to remove: ', layerToRemove)
       changeMapLayers(layerToRemove, layer.item);
     });
+
+    // adding an event listener to preserve single selection
+      listItem.addEventListener("calciteListItemClose", () => {
+      if (listItem.selected) {
+        console.log("REMOVING SELECTED ITEM", listItem.label);
+      } else {
+        console.log("layer removed:", listItem.label);
+      }
+
+      // Remove the item
+      listItem.remove();
+
+      // Re-enforce single selection mode for the inner list
+      const parentList = listItem.closest("calcite-list");
+      if (parentList) {
+        parentList.selectionMode = "single";
+      }
+    });
+
     // and appending it to our calcite-list
     list.append(listItem);
   }
 
-  enforceSingleSelection(list);
+  list.selectionMode = "single-persist";  // explicitly setting the list's selection mode
   // adding an event listener for toggling the list's visibility
 }
 
