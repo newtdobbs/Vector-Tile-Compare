@@ -166,3 +166,85 @@ export async function createDefaultMap(){
         }
     }
 }
+
+
+// old calcite for double lists
+// <!-- <calcite-label layout="inline">
+//           <calcite-checkbox checked id="top-layer-check"></calcite-checkbox>
+//           Top Layer (blue)
+//       </calcite-label> -->
+//       <!-- <calcite-list id="top-layer-list"></calcite-list>
+//       <calcite-label layout="inline">
+//         <calcite-checkbox checked id="bottom-layer-check"></calcite-checkbox>
+//         Bottom Layer (red)
+//       </calcite-label>
+//       <calcite-list id="bottom-layer-list"></calcite-list> -->
+//     <!-- <calcite-list label="layers" display-mode="nested" selection-mode="multiple" id="layer-list">
+//       <calcite-list-item selected label="Top Layer (Blue)" id="top-list-item">
+//         <calcite-list selection-mode="single-persist" id="top-list">
+
+//         </calcite-list>
+//       </calcite-list-item>
+//       <calcite-list-item selected label="Bottom Layer (Red)" id="bottom-list-item">
+//         <calcite-list selection-mode="single-persist" id="bottom-list">
+
+//         </calcite-list>
+//       </calcite-list-item>
+//     </calcite-list>-->
+
+// old js for layer lists
+// export function populateLayerList(){
+//   layerList.innerHTML = "";
+//   appState.currentSelectedLayers = [];
+//   const customLayerOrder = [];
+//   for (const layer of appState.allTileLayers) {
+//     //  list item to represent the layer
+//     const listItem = document.createElement("calcite-list-item");
+//     listItem.label = layer.item.title;
+//     listItem.scale = "l";
+//     listItem.value = layer.item.title;
+//     listItem.closable = true;
+    
+//     // selecting the items corresponding to the top layer and bottom layer
+//     if (layer.item.title === appState.topLayer.title || layer.item.title === appState.bottomLayer.title){
+//       listItem.selected = true;
+//       appState.currentSelectedLayers.push(layer.item);
+//     }
+
+//     listItem.addEventListener("calciteListItemSelect", (event) => {
+
+//       // deselection event
+//       if(!listItem.selected){ 
+//         appState.currentSelectedLayers = appState.currentSelectedLayers.filter(l => l.title !== listItem.label); // removing the portal item from the state array
+//         console.log('removing from', listItem.label, 'from state selection:')
+//         if (layer.title === appState.topLayer.title){
+//           appState.topLayer.visible = false;
+//         } else if (layer.title === appState.bottomLayer.title){
+//           appState.bottomLayer.visible = false;
+//         }
+
+//       // selection event
+//       } else{ 
+//         // if there were already 2 items selected
+//         if(appState.currentSelectedLayers.length >= appState.maxLayerListSelectedItems){ 
+//           event.stopPropagation(); 
+//           listItem.selected = false; // we ignore the selection event
+//         // otherwise if there was only 1 item selected
+//         } else { 
+//           listItem.selected = true; // we select the item 
+//           appState.currentSelectedLayers.push(layer.item); // and add it to the state array
+//           if (layer.title === appState.topLayer.title){
+//             appState.topLayer.visible = false;
+//           } else if (layer.title === appState.bottomLayer.title){
+//             appState.bottomLayer.visible = false;
+//           }
+//         }
+//       }
+//       console.log('state selection', appState.currentSelectedLayers )
+//     })
+//     customLayerOrder.push(listItem); // adding it to a dummy array
+//   }
+//   // swapping the top two layers
+//   [customLayerOrder[0], customLayerOrder[1]] = [customLayerOrder[1], customLayerOrder[0]];
+//   customLayerOrder.forEach((l) => {layerList.append(l)}); // building our calcite list using the custom layer order with top swapped
+// }

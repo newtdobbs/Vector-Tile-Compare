@@ -5,7 +5,6 @@ import ElevationSampler from "@arcgis/core/layers/support/ElevationSampler";
 import { appState } from "./state";
 import { queryItemsFromGroup, createDefaultMap } from "./src/map";
 import { populateFieldsList, populateLayerList } from "./src/ui";
-import { topLayerList, bottomLayerList, newPopulateLayerList } from "./src/ui";
 
 const mapEl = document.getElementById("mapEl");
 
@@ -22,9 +21,8 @@ const actions = shellPanel?.querySelectorAll("calcite-action");
 
 await populateFieldsList();
 
-populateLayerList();
-newPopulateLayerList("top-tree")
-newPopulateLayerList("bottom-tree")
+populateLayerList("top")
+populateLayerList("bottom")
 
 
 // let activeWidget;

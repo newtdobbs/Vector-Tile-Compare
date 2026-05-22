@@ -164,33 +164,8 @@ export async function changeFilterField(){
 }
 
 export async function changeMapLayers(layerKey, portalItem){
-    const currentLayer = appState[layerKey] // this would be top or bottom layer
-    const map = appState.map;
-    const layerIndex = map.layers.indexOf(currentLayer) // the index of the layer we want to replace within the map
+    console.log('portal item to create layer for:', portalItem)
 
-    // creating a new feature layer for the portal item from app state
-    const replacementLayer = new FeatureLayer({
-        portalItem: {id: portalItem.id}
-    })
-    console.log('replacement layer created as:', replacementLayer)
-
-    await replacementLayer.load();
-
-    if (currentLayer.renderer){
-        replacementLayer.renderer = currentLayer.renderer.clone?.() ?? currentLayer.renderer;
-    }
-
-    replacementLayer.definitionExpression = currentLayer.definitionExpression; // inheriting definition expression for the replacement
-    replacementLayer.visible = currentLayer.visible; // also inheriting visibility 
-    if (currentLayer.featureEffect) { // also inheriting the featureeffect
-        replacementLayer.featureEffect =
-        currentLayer.featureEffect.clone?.() ?? currentLayer.featureEffect;
-    }
-
-    map.remove(currentLayer); // removing the layer
-    map.add(replacementLayer, layerIndex) // addinmg the replacement layer at its relevant index
-    appState[layerKey] = replacementLayer;
-}
 
 // export async function changeMapLayers(layerToRemove, layerToAdd){
 //     // this should just use toplayer or bottom layer as an arg and pull from state

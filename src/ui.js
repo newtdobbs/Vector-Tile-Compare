@@ -98,130 +98,67 @@ export async function populateFieldsList(){
 // function enforceSingleSelection(listOfLayers){
   
 // }
-function rebuildStateLayers(){
-  if(appState.currentSelectedLayers.length > 0){
-    appState.bottomLayer
-  }
-
-  console.log('REBUILD:')
-  console.log('app state top layer', appState.topLayer);
-  console.log('app state bottom layer', appState.bottomLayer);
-}
-export function newPopulateLayerList(treeName) {
-  const tree = document.getElementById(treeName);
+export function populateLayerList(key) {
+  const tree = document.getElementById(`${key}-tree`);
   tree.innerHTML = ""; // clearing the list
   appState.currentSelectedLayers = [];
-  const customLayerOrder = [];
+  let stateLayer = appState[`${key}Layer`]
+
+  console.log('All tile layers:', appState.allTileLayers)
   for (const layer of appState.allTileLayers) {
     //  list item to represent the layer
     const treeItem = document.createElement("calcite-tree-item");
     treeItem.label = layer.item.title;
     treeItem.textContent = layer.item.title
-    // listItem.scale = "l";
-    // listItem.value = layer.item.title;
-    // listItem.closable = true;
     
     // selecting the items corresponding to the top layer and bottom layer
-    if (layer.item.title === appState.topLayer.title || layer.item.title === appState.bottomLayer.title){
+    if (layer.item.title === stateLayer.title){
       treeItem.selected = true;
       appState.currentSelectedLayers.push(layer.item);
     }
+    treeItem.expanded = true;
     tree.appendChild(treeItem);
-  }
-  console.log('tree', treeName, tree)
-}
 
-    // listItem.addEventListener("calciteListItemSelect", (event) => {
-
-    //   // deselection event
-    //   if(!listItem.selected){ 
-    //     appState.currentSelectedLayers = appState.currentSelectedLayers.filter(l => l.title !== listItem.label); // removing the portal item from the state array
-    //     console.log('removing from', listItem.label, 'from state selection:')
-    //     if (layer.title === appState.topLayer.title){
-    //       appState.topLayer.visible = false;
-    //     } else if (layer.title === appState.bottomLayer.title){
-    //       appState.bottomLayer.visible = false;
-    //     }
-
-    //   // selection event
-    //   } else{ 
-    //     // if there were already 2 items selected
-    //     if(appState.currentSelectedLayers.length >= appState.maxLayerListSelectedItems){ 
-    //       event.stopPropagation(); 
-    //       listItem.selected = false; // we ignore the selection event
-    //     // otherwise if there was only 1 item selected
-    //     } else { 
-    //       listItem.selected = true; // we select the item 
-    //       appState.currentSelectedLayers.push(layer.item); // and add it to the state array
-    //       if (layer.title === appState.topLayer.title){
-    //         appState.topLayer.visible = false;
-    //       } else if (layer.title === appState.bottomLayer.title){
-    //         appState.bottomLayer.visible = false;
-    //       }
-    //     }
-    //   }
-    //   console.log('state selection', appState.currentSelectedLayers )
-    // })
-
-export function populateLayerList(){
-  layerList.innerHTML = "";
-  appState.currentSelectedLayers = [];
-  const customLayerOrder = [];
-  for (const layer of appState.allTileLayers) {
-    //  list item to represent the layer
-    const listItem = document.createElement("calcite-list-item");
-    listItem.label = layer.item.title;
-    listItem.scale = "l";
-    listItem.value = layer.item.title;
-    listItem.closable = true;
-    
-    // selecting the items corresponding to the top layer and bottom layer
-    if (layer.item.title === appState.topLayer.title || layer.item.title === appState.bottomLayer.title){
-      listItem.selected = true;
-      appState.currentSelectedLayers.push(layer.item);
-    }
-
-    listItem.addEventListener("calciteListItemSelect", (event) => {
-
-      // deselection event
-      if(!listItem.selected){ 
-        appState.currentSelectedLayers = appState.currentSelectedLayers.filter(l => l.title !== listItem.label); // removing the portal item from the state array
-        console.log('removing from', listItem.label, 'from state selection:')
-        if (layer.title === appState.topLayer.title){
-          appState.topLayer.visible = false;
-        } else if (layer.title === appState.bottomLayer.title){
-          appState.bottomLayer.visible = false;
-        }
-
+    treeItem.addEventListener("click", ()=>{ // this fires AFTER selection, reflecting the final state
+      // console.log(`Is ${treeItem.label} selected: ${treeItem.selected}`);
       // selection event
-      } else{ 
-        // if there were already 2 items selected
-        if(appState.currentSelectedLayers.length >= appState.maxLayerListSelectedItems){ 
-          event.stopPropagation(); 
-          listItem.selected = false; // we ignore the selection event
-        // otherwise if there was only 1 item selected
-        } else { 
-          listItem.selected = true; // we select the item 
-          appState.currentSelectedLayers.push(layer.item); // and add it to the state array
-          if (layer.title === appState.topLayer.title){
-            appState.topLayer.visible = false;
-          } else if (layer.title === appState.bottomLayer.title){
-            appState.bottomLayer.visible = false;
-          }
-        }
+      // if(treeItem.selected){ // for re-selecting the state layer        
+      //   if (appState[`${key}Layer`].title === layer.title){
+      //     console.log('same layer re-selected')
+      //   } else { // selecting a different layer
+      //     // console.log('layer change') 
+      //     // changeMapLayers(`${key}Layer`, layer)
+      //   }        
+      // } else { // deselection event, we'll leave 
+      //   appState[`${key}Layer`].visible = false; // clearing the state layer for deselection
+      //   console.log('layer turned off')
+      // }
+
+      
+      if(treeItem.selected){ // selection event
+
+        // if the selected layer is the same as state layer, just turn it on
+        // otherwise change the map's layers
+        
+        
+      }else{ // deselection event
+
       }
-      console.log('state selection', appState.currentSelectedLayers )
+        //just change visibilitt
+
+
+
+
+
+      
+      console.log(`${key} state layer:`, appState[`${key}Layer`].title)
     })
-    customLayerOrder.push(listItem); // adding it to a dummy array
   }
-  // swapping the top two layers
-  [customLayerOrder[0], customLayerOrder[1]] = [customLayerOrder[1], customLayerOrder[0]];
-  customLayerOrder.forEach((l) => {layerList.append(l)}); // building our calcite list using the custom layer order with top swapped
+  tree.expanded = true;
+  // console.log('tree', /, tree)
 }
-
-
 
 resetListsButton.addEventListener("click", function() {
-  populateLayerList(topLayerList, "topLayer");
-  populateLayerList(bottomLayerList, "bottomLayer");
+  populateLayerList(topLayerList, "top");
+  populateLayerList(bottomLayerList, "bottom");
 });

@@ -37,40 +37,26 @@
 
         <!-- panel for the layer list -->
         <calcite-panel data-panel-id="layers-panel" heading="Layers" id="layers-panel" closed hidden closable>
-        <calcite-tree lines selection-mode="single">
-          <calcite-tree-item >Top Layer (Blue)
-            <calcite-tree slot="children" id="top-tree"></calcite-tree>
+        <!-- <calcite-tree lines id="outer-tree"> -->
+        <!-- </calcite-tree> -->
+
+        <calcite-tree id="top-outer-tree">
+          <calcite-tree-item selection-mode="single" expanded>Top Layer (Blue)
+            <calcite-tree slot="children" id="top-tree" lines>
+              <!-- the top inner tree where layers will be added -->
+            </calcite-tree>
           </calcite-tree-item>
-          <calcite-tree-item >Top Layer (Red)
-            <calcite-tree slot="children" id="bottom-tree"></calcite-tree>'
-          </calcite-tree-item>
-          
         </calcite-tree>
 
-          <!-- <calcite-label layout="inline">
-              <calcite-checkbox checked id="top-layer-check"></calcite-checkbox>
-              Top Layer (blue)
-          </calcite-label> -->
-          <!-- <calcite-list id="top-layer-list"></calcite-list>
-          <calcite-label layout="inline">
-            <calcite-checkbox checked id="bottom-layer-check"></calcite-checkbox>
-            Bottom Layer (red)
-          </calcite-label>
-          <calcite-list id="bottom-layer-list"></calcite-list> -->
-        <!-- <calcite-list label="layers" display-mode="nested" selection-mode="multiple" id="layer-list">
-          <calcite-list-item selected label="Top Layer (Blue)" id="top-list-item">
-            <calcite-list selection-mode="single-persist" id="top-list">
-
-            </calcite-list>
-          </calcite-list-item>
-          <calcite-list-item selected label="Bottom Layer (Red)" id="bottom-list-item">
-            <calcite-list selection-mode="single-persist" id="bottom-list">
-  
-            </calcite-list>
-          </calcite-list-item>
-        </calcite-list>-->
+        <calcite-tree id="bottom-outer-tree">
+          <calcite-tree-item selection-mode="single" expanded>Bottom Layer (Red)
+            <calcite-tree slot="children" id="bottom-tree" lines>
+              <!-- the bottom inner tree where layers will be added -->
+            </calcite-tree>
+          </calcite-tree-item>
+        </calcite-tree>
         <calcite-button label="Reset Lists" id="reset-list-button" width="full">Reset Lists</calcite-button> 
-        <calcite-list drag-enabled selection-mode="multiple" selection-appearance="icon" label="Layers" id="layer-list"></calcite-list>
+        <!-- <calcite-list drag-enabled selection-mode="multiple" selection-appearance="icon" label="Layers" id="layer-list"></calcite-list> -->
         
       </calcite-panel>
 
