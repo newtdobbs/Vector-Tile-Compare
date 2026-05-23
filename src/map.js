@@ -1,4 +1,3 @@
-import PortalItem from "@arcgis/core/portal/PortalItem";
 import LocateSettingSource from "@arcgis/core/rest/support/LocateSettingSource";
 import { appState } from "../state";
 import "../style.css";
@@ -12,6 +11,7 @@ const PictureMarkerSymbol = await $arcgis.import("@arcgis/core/symbols/PictureMa
     "@arcgis/core/portal/PortalQueryParams.js",
     "@arcgis/core/WebMap.js"
 ]);
+const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
 const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
 const FeatureEffect = await $arcgis.import("@arcgis/core/layers/support/FeatureEffect.js");
 const FeatureFilter = await $arcgis.import("@arcgis/core/layers/support/FeatureFilter.js");
@@ -160,29 +160,42 @@ export async function createDefaultMap(layerItems) {
     return map;
 }
 export async function changeFilterField(){
+    // loop through map's layers
+    // change the definition expression
+    // reapply the renderer of those layers to the state renderers
+    console.log('filter field is now:', appState.filterField.name)
 
 }
 
 export async function changeMapLayers(layerKey, portalItem){
-    console.log('portal item to create layer for:', portalItem)
-
-
-// export async function changeMapLayers(layerToRemove, layerToAdd){
-//     // this should just use toplayer or bottom layer as an arg and pull from state
-//     console.log(`app state ${layerToRemove} before change`, appState[layerToRemove])
+    const currentLayer = appState[layerKey] // this would be top or bottom layer
+    console.log('Before change, state layer was:', currentLayer);
+    const map = appState.map;
+    const layerIndex = map.layers.indexOf(currentLayer) // the index of the layer we want to replace within the map
     
-//     // create a feature layer for it
-//     console.log('layer to add', layerToAdd)
-//     const replacementLayer = new FeatureLayer({ portalItem: layerToAdd })
-//     // assign the relevant renderer to it
-//     replacementLayer.when(() => {
-//         console.log('replacement layer is ready')
-//        replacementLayerrenderer = appState[layerToRemove].renderer 
-//     });
-//     console.log('REPLACEMENT LAYER', replacementLayer)
-//     // assign it to state
-//     appState[layerToRemove] = replacementLayer;
-//     // recreate the map with the new layer
-//     console.log(`app state ${layerToRemove} after change`, appState[layerToRemove])
-// }
+    // creating a new feature layer for the portal item from app state
+    const replacementLayer = new FeatureLayer({
+        portalItem: {id: portalItem.id}
+    })
+    // console.log('replacement layer created as:', replacementLayer)
+    
+    await replacementLayer.load();
+    
+    if (currentLayer.renderer){
+        replacementLayer.renderer = currentLayer.renderer.clone?.() ?? currentLayer.renderer;
+    }
+
+    replacementLayer.definitionExpression = currentLayer.definitionExpression; // inheriting definition expression for the replacement
+    replacementLayer.visible = currentLayer.visible; // also inheriting visibility 
+    if (currentLayer.featureEffect) { // also inheriting the featureeffect
+        replacementLayer.featureEffect =
+        currentLayer.featureEffect.clone?.() ?? currentLayer.featureEffect;
+    }
+    
+    map.remove(currentLayer); // removing the layer
+    map.add(replacementLayer, layerIndex) // addinmg the replacement layer at its relevant index
+    
+    appState[layerKey] = replacementLayer;
+    console.log('After change, state layer is:', appState[layerKey]);
+}
 

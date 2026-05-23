@@ -1,6 +1,9 @@
 import { appState } from "../state";
 import { ignoreFields } from "./constants";
 import { changeFilterField, changeMapLayers } from "./map"
+import { warnUser } from "./helperFunctions";
+const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
+const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
 
 
 // dom elements
@@ -55,17 +58,18 @@ function createListItemForField(f){
 
   // changing the selected field
   listItem.addEventListener("calciteListItemSelect", () => {
+    // SELECTION EVENT
     if (listItem.selected){
-      appState.filterField = f;
-      console.log(`Selected field is now ${appState.filterField.alias}`);
-      // changeFilterField(); 
+      appState.filterField = f; // assigning the selected field list item to state
+      changeFilterField(); // swapping the filter field
     }
+
   });
   
   // removing a field for the list
   listItem.addEventListener("calciteListItemClose", () => {
     console.log(`Remove clicked for field ${listItem.value}, definition expression is: ${appState.defintionExpression}`);
-    if (listItem.selected) {
+    if (listItem.value === appState.filterField.name) {
       warnUser("Please select a different filter field before removing the selected field.");
       return;
     } else {
@@ -84,7 +88,6 @@ function createListItemForField(f){
 // populating the fields list based on the first layer
 export async function populateFieldsList(){
   fieldsList.innerHTML = ""; // removing any preexising HTML from the fields list
-  fieldsList.selectionMode = "single";
   const firstLayer = appState.map.layers.items[0]
   await firstLayer.when(() => {
     firstLayer.fields.forEach(field => { // we'll just use the first layer by default
@@ -95,14 +98,11 @@ export async function populateFieldsList(){
   });
 };
 
-// function enforceSingleSelection(listOfLayers){
-  
-// }
+
 export function populateLayerList(key) {
   const tree = document.getElementById(`${key}-tree`);
   tree.innerHTML = ""; // clearing the list
   appState.currentSelectedLayers = [];
-  let stateLayer = appState[`${key}Layer`]
 
   console.log('All tile layers:', appState.allTileLayers)
   for (const layer of appState.allTileLayers) {
@@ -112,53 +112,34 @@ export function populateLayerList(key) {
     treeItem.textContent = layer.item.title
     
     // selecting the items corresponding to the top layer and bottom layer
-    if (layer.item.title === stateLayer.title){
+    if (layer.item.title === appState[`${key}Layer`].title){
       treeItem.selected = true;
       appState.currentSelectedLayers.push(layer.item);
     }
     treeItem.expanded = true;
     tree.appendChild(treeItem);
 
-    treeItem.addEventListener("click", ()=>{ // this fires AFTER selection, reflecting the final state
-      // console.log(`Is ${treeItem.label} selected: ${treeItem.selected}`);
-      // selection event
-      // if(treeItem.selected){ // for re-selecting the state layer        
-      //   if (appState[`${key}Layer`].title === layer.title){
-      //     console.log('same layer re-selected')
-      //   } else { // selecting a different layer
-      //     // console.log('layer change') 
-      //     // changeMapLayers(`${key}Layer`, layer)
-      //   }        
-      // } else { // deselection event, we'll leave 
-      //   appState[`${key}Layer`].visible = false; // clearing the state layer for deselection
-      //   console.log('layer turned off')
-      // }
+    // selection event
+      treeItem.addEventListener("click", ()=>{ 
+        // RESELECTING STATE LAYER, JUST CHANGE VISIBILITY
+        if (layer.item.title === appState[`${key}Layer`].title){
+          // SELECTION EVENT
+          if(treeItem.selected){ 
+            console.log(`Making ${layer.item.title} visible`)
+            appState[`${key}Layer`].visible = true;
+            
+            // DESELECTION EVENT, HIDE LAYER
+          } else {
+            console.log(`Hiding ${layer.item.title}`)
+            appState[`${key}Layer`].visible = false;
 
-      
-      if(treeItem.selected){ // selection event
-
-        // if the selected layer is the same as state layer, just turn it on
-        // otherwise change the map's layers
-        
-        
-      }else{ // deselection event
-
-      }
-        //just change visibilitt
-
-
-
-
-
-      
-      console.log(`${key} state layer:`, appState[`${key}Layer`].title)
-    })
+          }
+        // SELECTING A DIFFERENT LAYER, NEED TO CHANGE MAP STATE
+        }else{ 
+          console.log(`Different layer selected, ${layer.item.title} does not match ${appState[`${key}Layer`].title}`)
+          changeMapLayers(`${key}Layer`, layer.item)
+        }
+      })
   }
-  tree.expanded = true;
-  // console.log('tree', /, tree)
 }
 
-resetListsButton.addEventListener("click", function() {
-  populateLayerList(topLayerList, "top");
-  populateLayerList(bottomLayerList, "bottom");
-});
