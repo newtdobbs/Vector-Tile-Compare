@@ -1,6 +1,7 @@
 import LocateSettingSource from "@arcgis/core/rest/support/LocateSettingSource";
 import { appState } from "../state";
 import "../style.css";
+import { warnUser } from "./helperFunctions";
 
 const [Map, MapView] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/core/views/MapView.js"]);
 const PictureMarkerSymbol = await $arcgis.import("@arcgis/core/symbols/PictureMarkerSymbol.js");
@@ -15,6 +16,8 @@ const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
 const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
 const FeatureEffect = await $arcgis.import("@arcgis/core/layers/support/FeatureEffect.js");
 const FeatureFilter = await $arcgis.import("@arcgis/core/layers/support/FeatureFilter.js");
+const mapEl = document.getElementById("mapEl");
+const basemapGallery = document.getElementById("basemapGallery");
 
 
 let info = new OAuthInfo({
@@ -134,38 +137,66 @@ export async function createDefaultMap(layerItems) {
         }); // Wait for layer to be ready
         
     }
-
+    
     // assigning the renderers to state, these renderers shouldn't change when layers are swqpped
-    appState.topRenderer = appState.topLayer.renderer;
-    appState.bottomRenderer = appState.bottomLayer.renderer;
-
+    // appState.topRenderer = appState.topLayer.renderer;
+    // appState.bottomRenderer = appState.bottomLayer.renderer;
+    
     // adding layers to map after applying effects (just to be safe with the order)
     map.add(appState.bottomLayer)
     map.add(appState.topLayer)
     
     const view = new MapView({
-        container: document.getElementById("mapEl"), // the dom element to hold our map
+        container: mapEl, // the dom element to hold our map
         map: map,
         ui: { components: [] }
     });
-
+    
     view.when(() => {
         view.goTo({ 
             target: [137.421641, 35.918028],
             zoom: 6
         });
     })
-
+    
     appState.map = map;
     return map;
 }
 export async function changeFilterField(){
-    // loop through map's layers
-    // change the definition expression
+    mapEl.map.when(() => {
+        
+        console.log('MAP ELEMENT', mapEl.map)
+        // if there's a filter applied
+        if (appState.filterField){    
+            // loop through map's layers
+            console.log(`\n--------- FILTER CHANGE -------------`);
+            appState.map.layers.forEach(layer => {
+                console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`);
+                // change the definition expression
+                layer.definitionExpression = ` > 0`;
+                console.log(`New definition expression: ${layer.definitionExpression}`);
+                console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // double check the feature effect works
+            });
+            warnUser(`Changing filter field to: "${appState.filterField.name}"`);
+            console.log(`-------------------------------------\n`);
+            // otherwise the filter has been cleared
+        } else {
+            // loop through map's layers
+            console.log(`\n--------- FILTER REMOVAL -------------`);
+            appState.map.layers.forEach(layer => {
+                layer.definitionExpression = null;
+                // remove the definition expression
+                console.log(`New definition expression: ${layer.definitionExpression}`);
+                console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // double check the feature effect works
+            });
+            warnUser("Removing filter field");
+            console.log(`-------------------------------------\n`);
+        }
+    })
     // reapply the renderer of those layers to the state renderers
-    console.log('filter field is now:', appState.filterField.name)
 
 }
+
 
 export async function changeMapLayers(layerKey, portalItem){
     const currentLayer = appState[layerKey] // this would be top or bottom layer

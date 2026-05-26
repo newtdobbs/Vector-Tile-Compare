@@ -21,12 +21,13 @@ function handleActionBarClick({ target }) {
   const panelToOpen = target.dataset.actionId
   document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
     if (panelEl.dataset.panelId === panelToOpen) {
-
       panelEl.closed = false;
       panelEl.hidden = false;
+      panelEl.active = true;
     } else {
       panelEl.closed = true;
       panelEl.hidden = true; 
+      panelEl.active = false;
     }
   });
 }
@@ -60,10 +61,15 @@ function createListItemForField(f){
   listItem.addEventListener("calciteListItemSelect", () => {
     // SELECTION EVENT
     if (listItem.selected){
+      console.log('field selected', f.name)
       appState.filterField = f; // assigning the selected field list item to state
-      changeFilterField(); // swapping the filter field
     }
-
+    // DESELECTION EVENT, REMOVE STATE FILTER
+    else {
+      console.log(f.name, 'removed as filter field')
+      appState.filterField = null;
+    }
+    changeFilterField(); // changing the field filter, either swapping for selected field or removing filter entirely
   });
   
   // removing a field for the list
@@ -71,7 +77,7 @@ function createListItemForField(f){
     console.log(`Remove clicked for field ${listItem.value}, definition expression is: ${appState.defintionExpression}`);
     if (listItem.value === appState.filterField.name) {
       warnUser("Please select a different filter field before removing the selected field.");
-      return;
+      return; // won't remove the field if it is the current state filter
     } else {
       warnUser("Removing field: ", f.alias);
       listItem.remove();

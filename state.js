@@ -9,9 +9,9 @@ export const appState = {
   activeWidget: "fields-list", // we'll use the fields list as the default action
   activeFeatureLayers: [],
   topLayer: null,
-  topRenderer: null, // the renderer for the top (BLUE) layer,
+  // topRenderer: null, // the renderer for the top (BLUE) layer,
   bottomLayer: null,
-  bottomRenderer: null, // the renderer for the bottom (RED) layer
+  // bottomRenderer: null, // the renderer for the bottom (RED) layer
   maxLayerListSelectedItems: 2,
   currentSelectedLayers: null
 }

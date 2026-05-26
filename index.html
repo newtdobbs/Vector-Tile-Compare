@@ -29,9 +29,10 @@
               <calcite-action data-action-id="basemap-panel" icon="basemap" text="Basemap" text-enabled></calcite-action>
             </calcite-action-group>
         </calcite-action-bar>
+
         <!-- panel for the field list -->
         <calcite-panel data-panel-id="fields-panel" heading="Fields" id="fields-panel" closable>
-          <calcite-list id="fields-list" selection-mode="single-persist">
+          <calcite-list id="fields-list" selection-mode="single">
           </calcite-list>
         </calcite-panel>
 
@@ -57,10 +58,10 @@
         </calcite-tree>
       </calcite-panel>
 
-        <!-- panel for basemaps -->
-        <calcite-panel data-panel-id="basemap-panel" heading="Basemap" id="basemap-panel" closed hidden closable>
-            <arcgis-basemap-gallery reference-element="mapEl"></arcgis-basemap-gallery>
-        </calcite-panel>
+      <!-- panel for basemaps -->
+      <calcite-panel data-panel-id="basemap-panel" heading="Basemap" id="basemap-panel" closed hidden closable>
+          <arcgis-basemap-gallery id="basemapGallery" reference-element="mapEl"></arcgis-basemap-gallery>
+      </calcite-panel>
     </calcite-shell-panel>
 
 
