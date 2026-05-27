@@ -4,18 +4,19 @@ import "./style.css";
 import ElevationSampler from "@arcgis/core/layers/support/ElevationSampler";
 import { appState } from "./state";
 import { queryItemsFromGroup, createDefaultMap } from "./src/map";
-import { populateFieldsList, populateLayerList } from "./src/ui";
+import { populateFieldsList, populateLayerList, setupPanel } from "./src/ui";
 
-const mapEl = document.getElementById("mapEl");
+
+
+const shellPanel = document.getElementById("shell-Panel");
+setupPanel();
+
+const actions = shellPanel?.querySelectorAll("calcite-action");
 
 const layerItems = await queryItemsFromGroup();
 await createDefaultMap(layerItems).then(() => {
   document.getElementById("app-loader").hidden = true;
 });
-
-const panel = document.getElementById("panel-start");
-const shellPanel = document.getElementById("shell-panel-start");
-const actions = shellPanel?.querySelectorAll("calcite-action");
 
 
 

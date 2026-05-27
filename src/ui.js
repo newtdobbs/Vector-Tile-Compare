@@ -6,46 +6,86 @@ const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js")
 const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
 
 // dom elements
+const shellPanel = document.getElementById("shell-panel");
 const fieldsList = document.getElementById("fields-list");
 const layerList = document.getElementById("layer-list");
 export const topLayerList = document.getElementById("top-list");
 export const bottomLayerList = document.getElementById("bottom-list");
-const mapEl = document.getElementById("mapEl")
-const actionBar = document.getElementById("action-bar")
-const resetListsButton = document.getElementById("reset-list-button")
+const mapEl = document.getElementById("mapEl");
+const actionBar = document.getElementById("action-bar");
+const resetListsButton = document.getElementById("reset-list-button");
+
 mapEl.map = appState.map;
 
+
+// event listener to open the corresponding panel 
 function handleActionBarClick({ target }) {
-  console.log('target', target.dataset.actionId)
   const panelToOpen = target.dataset.actionId
+  console.log('panel clicked', panelToOpen)
+  // looping through the panels 
   document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
+    // opening the one that was clicked
     if (panelEl.dataset.panelId === panelToOpen) {
       panelEl.closed = false;
       panelEl.hidden = false;
       panelEl.active = true;
+      appState.activeWidget = panelToOpen;
+      // and closing the others
     } else {
       panelEl.closed = true;
       panelEl.hidden = true; 
       panelEl.active = false;
-    }
-  });
-}
-document.getElementById("action-bar").addEventListener("click", handleActionBarClick);
+    }  
+  });  
+};
 
-export function setupPanelCloseHandlers() {
+// event listener to close all panels for action bar collapse
+function actionBarToggle (){
+  const actionBarStatus =  actionBar.expanded ? true : "collapsed";
+  // opening event
+  if (actionBar.expanded){
+    document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
+      // only showing the panel that was open before collapse
+      if (panelEl.id = appState.activeWidget){
+          console.log('need to open panel:', panelEl.id)
+          panelEl.closed = false;
+          panelEl.hidden = false; 
+          panelEl.active = true;
+        }
+      });
+  // collapsing event
+  } else {
+    console.log('closing all panels')
+    shellPanel.collapsed = true;
+    document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
+      panelEl.closed = true;
+      panelEl.hidden = true; 
+      panelEl.active = false;
+    });
+  }
+};
+
+
+export function setupPanel(){
+  actionBar.addEventListener("calciteActionBarToggle", actionBarToggle) // open/close toggle
+  actionBar.addEventListener("click", handleActionBarClick);
   document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
     panelEl.addEventListener("calcitePanelClose", () => {
+      console.log('closing panel', panelEl.id)
       panelEl.hidden=true;
       const actionEl = document.querySelector(`[data-action-id=${appState.activeWidget}]`);
       if (actionEl) {
+        console.log('closing the active widget:', actionEl)
         actionEl.active = false;
         actionEl.setFocus();
         actionEl.hidden=true;
       }
-      appState.activeWidget = null;
+      // appState.activeWidget = null;
+      shellPanel.collapsed = true;
     });
   });
 }
+
 
 
 function createListItemForField(f){
