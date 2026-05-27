@@ -5,7 +5,6 @@ import { warnUser } from "./helperFunctions";
 const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
 const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
 
-
 // dom elements
 const fieldsList = document.getElementById("fields-list");
 const layerList = document.getElementById("layer-list");

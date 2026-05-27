@@ -18,6 +18,7 @@ const FeatureEffect = await $arcgis.import("@arcgis/core/layers/support/FeatureE
 const FeatureFilter = await $arcgis.import("@arcgis/core/layers/support/FeatureFilter.js");
 const mapEl = document.getElementById("mapEl");
 const basemapGallery = document.getElementById("basemapGallery");
+import "@arcgis/map-components/components/arcgis-basemap-gallery";
 
 
 let info = new OAuthInfo({
@@ -159,6 +160,7 @@ export async function createDefaultMap(layerItems) {
         });
     })
     
+    mapEl.map = map;
     appState.map = map;
     return map;
 }

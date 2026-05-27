@@ -30,6 +30,11 @@ calcite-block[data-block-id] {
   overflow-y: auto;
 }
 
+arcgis-basemap-gallery {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
 
 #card-heading {
   font-size: var(--calcite-font-size-md);
