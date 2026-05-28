@@ -11,7 +11,7 @@
 
 <body>
 
-  <calcite-shell content-behind>
+  <calcite-shell>
 
      <calcite-navigation slot="header">
        <calcite-navigation-logo slot="logo" heading="Esri Vector Basemap Tile Statistics">
@@ -31,13 +31,13 @@
         </calcite-action-bar>
 
         <!-- panel for the field list -->
-        <calcite-panel data-panel-id="fields-panel" heading="Fields" id="fields-panel" closable>
+        <calcite-panel data-panel-id="fields-panel" heading="Fields" id="fields-panel">
           <calcite-list id="fields-list" selection-mode="single">
           </calcite-list>
         </calcite-panel>
 
         <!-- panel for the layer list -->
-        <calcite-panel data-panel-id="layers-panel" heading="Layers" id="layers-panel" closed hidden closable>
+        <calcite-panel data-panel-id="layers-panel" heading="Layers" id="layers-panel" closed hidden>
         <!-- top outer tree for dropdown -->
         <calcite-tree id="top-outer-tree">
           <calcite-tree-item selection-mode="single" expanded>Top Layer (Blue)
@@ -58,7 +58,7 @@
       </calcite-panel>
 
       <!-- panel for basemaps -->
-      <calcite-panel data-panel-id="basemap-panel" heading="Basemap" id="basemap-panel" closable closed hidden>
+      <calcite-panel data-panel-id="basemap-panel" heading="Basemap" id="basemap-panel" closed hidden>
         <arcgis-basemap-gallery reference-element="mapEl" id="basemapGallery"></arcgis-basemap-gallery>
       </calcite-panel>
 

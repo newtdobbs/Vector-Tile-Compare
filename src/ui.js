@@ -1,7 +1,6 @@
 import { appState } from "../state";
 import { ignoreFields } from "./constants";
 import { changeFilterField, changeMapLayers } from "./map"
-import { warnUser } from "./helperFunctions";
 const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
 const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
 
@@ -18,7 +17,7 @@ const resetListsButton = document.getElementById("reset-list-button");
 mapEl.map = appState.map;
 
 
-// event listener to open the corresponding panel 
+// // event listener to open the corresponding panel 
 function handleActionBarClick({ target }) {
   const panelToOpen = target.dataset.actionId
   console.log('panel clicked', panelToOpen)
@@ -38,37 +37,33 @@ function handleActionBarClick({ target }) {
     }  
   });  
 };
-
+      
 // event listener to close all panels for action bar collapse
 function actionBarToggle (){
-  const actionBarStatus =  actionBar.expanded ? true : "collapsed";
   // opening event
   if (actionBar.expanded){
+    console.log('panel to open', appState.activeWidgte)
+    shellPanel.collapsed = false;
+    // opening the panel that was previously open
     document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
-      // only showing the panel that was open before collapse
-      if (panelEl.id = appState.activeWidget){
-          console.log('need to open panel:', panelEl.id)
-          panelEl.closed = false;
-          panelEl.hidden = false; 
-          panelEl.active = true;
-        }
-      });
-  // collapsing event
-  } else {
-    console.log('closing all panels')
-    shellPanel.collapsed = true;
-    document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
-      panelEl.closed = true;
-      panelEl.hidden = true; 
-      panelEl.active = false;
+      if (panelEl.dataset.panelId === appState.activeWidget) {
+        panelEl.closed = false;
+        panelEl.hidden = false;
+        panelEl.active = true;
+      }
     });
+  // closing event
+  } else {
+    console.log('closing panels')
+    shellPanel.collapsed = true;
+
   }
 };
 
 
 export function setupPanel(){
   actionBar.addEventListener("calciteActionBarToggle", actionBarToggle) // open/close toggle
-  actionBar.addEventListener("click", handleActionBarClick);
+  actionBar.addEventListener("click", handleActionBarClick) // open/close toggle
   document.querySelectorAll('calcite-shell-panel[slot="panel-start"] calcite-panel').forEach(panelEl => {
     panelEl.addEventListener("calcitePanelClose", () => {
       console.log('closing panel', panelEl.id)
@@ -188,3 +183,21 @@ export function populateLayerList(key) {
   }
 }
 
+export function warnUser(message){
+  // clear any existing warnings
+  const existingAlert = document.querySelector("calcite-alert")
+  if(existingAlert) existingAlert.remove(); // clearing any preexisting alerts
+
+  // displaying an alert, warning the user to turn on the overlay when taking screensbot 
+  const newAlert = document.createElement("calcite-alert");
+  newAlert.open = true;
+  newAlert.kind = "warning";
+  newAlert.autoDismiss = true;
+  const title = document.createElement("calcite-alert-message");
+  title.textContent = message;
+  title.slot = "title";
+  newAlert.appendChild(title);
+
+  // appending the warning to the DOM
+  document.body.appendChild(newAlert);
+}

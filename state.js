@@ -1,5 +1,6 @@
 export const appState = {
   map: null,
+  view: null,
   layerDefinitionExpressions: [],
   activeDefinitionExpression: null,
   activeDefinitionExpressionField: null,

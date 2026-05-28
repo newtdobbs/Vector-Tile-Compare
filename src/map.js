@@ -1,7 +1,7 @@
 import LocateSettingSource from "@arcgis/core/rest/support/LocateSettingSource";
 import { appState } from "../state";
 import "../style.css";
-import { warnUser } from "./helperFunctions";
+import { warnUser } from "./ui";
 
 const [Map, MapView] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/core/views/MapView.js"]);
 const PictureMarkerSymbol = await $arcgis.import("@arcgis/core/symbols/PictureMarkerSymbol.js");
@@ -162,40 +162,48 @@ export async function createDefaultMap(layerItems) {
     
     mapEl.map = map;
     appState.map = map;
+    appState.view = view;
     return map;
 }
-export async function changeFilterField(){
-    mapEl.map.when(() => {
+export function changeFilterField(){
+    const view = appState.view;
+    if (!view) {
+        warnUser("View is not ready yet. Please try again in a moment.");
+        return;
+    }
+
+    view.when(function() {
+
+        console.log('loaded view', view)
+
+        const map = view.map;
         
-        console.log('MAP ELEMENT', mapEl.map)
         // if there's a filter applied
-        if (appState.filterField){    
-            // loop through map's layers
+        if (appState.filterField) {
             console.log(`\n--------- FILTER CHANGE -------------`);
-            appState.map.layers.forEach(layer => {
+            map.layers.forEach((layer) => {
                 console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`);
-                // change the definition expression
-                layer.definitionExpression = ` > 0`;
+                layer.definitionExpression = `${appState.filterField.name} > 0`;
                 console.log(`New definition expression: ${layer.definitionExpression}`);
-                console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // double check the feature effect works
+                console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect);
             });
             warnUser(`Changing filter field to: "${appState.filterField.name}"`);
             console.log(`-------------------------------------\n`);
-            // otherwise the filter has been cleared
         } else {
-            // loop through map's layers
+            // otherwise the filter has been cleared
             console.log(`\n--------- FILTER REMOVAL -------------`);
-            appState.map.layers.forEach(layer => {
+            map.layers.forEach((layer) => {
                 layer.definitionExpression = null;
-                // remove the definition expression
                 console.log(`New definition expression: ${layer.definitionExpression}`);
-                console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // double check the feature effect works
+                console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect);
             });
             warnUser("Removing filter field");
             console.log(`-------------------------------------\n`);
         }
+    }, function(error){
+        warnUser("An error occured while changing the map filter.")
     })
-    // reapply the renderer of those layers to the state renderers
+
 
 }
 
