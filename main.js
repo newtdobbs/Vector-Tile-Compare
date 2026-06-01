@@ -8,7 +8,7 @@ import { populateFieldsList, populateLayerList, setupPanel } from "./src/ui";
 
 
 
-const shellPanel = document.getElementById("shell-Panel");
+const shellPanel = document.getElementById("shell-panel");
 setupPanel();
 
 const actions = shellPanel?.querySelectorAll("calcite-action");
