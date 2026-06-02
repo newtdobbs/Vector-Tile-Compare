@@ -13,50 +13,9 @@ export const bottomLayerList = document.getElementById("bottom-list");
 const mapEl = document.getElementById("mapEl");
 const actionBar = document.getElementById("action-bar");
 const resetListsButton = document.getElementById("reset-list-button");
-const blockIds = ["fields-block", "layers-block", "basemap-block"];
 
 mapEl.map = appState.map;
 
-
-function openBlock(blockId) {
-  blockIds.forEach(id => {
-    const blockEl = document.getElementById(id);
-    if (blockEl) {
-      blockEl.open = id === blockId;
-    }
-  });
-
-  document.querySelectorAll("#action-bar calcite-action").forEach(actionEl => {
-    actionEl.active = actionEl.dataset.blockId === blockId;
-  });
-}
-
-// Event listener to open the corresponding block.
-function handleActionBarClick({ target }) {
-  const actionEl = target.closest("calcite-action");
-  if (!actionEl) {
-    return;
-  }
-
-  const blockToOpen = actionEl.dataset.blockId;
-  if (!blockToOpen) {
-    return;
-  }
-
-  appState.activeWidget = blockToOpen;
-  console.log("App state active widget is:", appState.activeWidget);
-  openBlock(blockToOpen);
-}
-
-
-export function setupPanel(){
-  if (!actionBar) {
-    return;
-  }
-
-  actionBar.addEventListener("click", handleActionBarClick);
-  openBlock(appState.activeWidget || "fields-block");
-}
 
 
 

@@ -4,14 +4,10 @@ import "./style.css";
 import ElevationSampler from "@arcgis/core/layers/support/ElevationSampler";
 import { appState } from "./state";
 import { queryItemsFromGroup, createDefaultMap } from "./src/map";
-import { populateFieldsList, populateLayerList, setupPanel } from "./src/ui";
+import { populateFieldsList, populateLayerList } from "./src/ui";
 
 
 
-const shellPanel = document.getElementById("shell-panel");
-setupPanel();
-
-const actions = shellPanel?.querySelectorAll("calcite-action");
 
 const layerItems = await queryItemsFromGroup();
 await createDefaultMap(layerItems).then(() => {

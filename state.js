@@ -7,7 +7,7 @@ export const appState = {
   allTileLayers: [],
   defaultFilterField: 'Building',
   filterField: null,
-  activeWidget: "fields-block", // default block shown in the options panel
+  activePanel: null, // default block shown in the options panel
   activeFeatureLayers: [],
   topLayer: null,
   // topRenderer: null, // the renderer for the top (BLUE) layer,

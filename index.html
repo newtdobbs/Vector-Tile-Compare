@@ -21,44 +21,42 @@
       </calcite-menu>
     </calcite-navigation>
 
-    <!-- <calcite-shell-panel slot="panel-start" id="shell-panel" >
+    <calcite-shell-panel slot="panel-start" id="shell-panel-start">
+        <calcite-panel heading="Map Options" id="panel-start">
+          <calcite-accordion>
 
-      <calcite-panel heading="Map Options" id="options-panel" collapsible collapse-direction="down">
-        <calcite-block id="fields-block" heading="Fields" description="Select a filter field" collapsible>
-          <calcite-list id="fields-list" selection-mode="single">
-          </calcite-list>
-        </calcite-block>
-
-        <calcite-block id="layers-block" heading="Layers" description="Change the visible tile layers" collapsible>
-          <calcite-tree id="top-outer-tree">
-            <calcite-tree-item selection-mode="single" expanded>Top Layer (Blue)
-              <calcite-tree slot="children" id="top-tree" lines></calcite-tree>
-            </calcite-tree-item>
-          </calcite-tree>
-
-          <calcite-tree id="bottom-outer-tree">
-            <calcite-tree-item selection-mode="single" expanded>Bottom Layer (Red)
-              <calcite-tree slot="children" id="bottom-tree" lines>
+            <!-- the fields list -->
+            <calcite-accordion-item icon-start="list-button" heading="Fields" description="Change the filter field">
+              <calcite-list id="fields-list" selection-mode="single"></calcite-list>
+            </calcite-accordion-item>
+            
+            <!-- the layer trees -->
+            <calcite-accordion-item icon-start="layers" heading="Layers" description="Swap layers visible in the map">
+              <calcite-tree id="top-outer-tree">
+                <calcite-tree-item selection-mode="single" expanded>Top Layer (Blue)
+                  <calcite-tree slot="children" id="top-tree" lines></calcite-tree>
+                </calcite-tree-item>
               </calcite-tree>
-            </calcite-tree-item>
-          </calcite-tree>
-        </calcite-block>
 
-        <calcite-block id="basemap-block" heading="Basemap" description="Choose a basemap" collapsible>
-          <arcgis-basemap-gallery reference-element="mapEl" id="basemapGallery"></arcgis-basemap-gallery>
-        </calcite-block>
+              <calcite-tree id="bottom-outer-tree">
+                <calcite-tree-item selection-mode="single" expanded>Bottom Layer (Red)
+                  <calcite-tree slot="children" id="bottom-tree" lines>
+                  </calcite-tree>
+                </calcite-tree-item>
+              </calcite-tree>
+            </calcite-accordion-item>
+         
+            <!-- the basemap gallery -->
+            <calcite-accordion-item icon-start="basemap" heading="Basemap" description="Update the basemap">
+              <arcgis-basemap-gallery reference-element="mapEl" id="basemapGallery"></arcgis-basemap-gallery>
+            </calcite-accordion-item>
+     
+        </calcite-accordion>
       </calcite-panel>
-
-
-
-    </calcite-shell-panel> -->
-
-
+    </calcite-shell-panel>
 
     <arcgis-map id="mapEl">
-
-      <arcgis-zoom slot="top-left"></arcgis-zoom>
-
+      <arcgis-zoom slot="top-right"></arcgis-zoom>
     </arcgis-map>
 
   </calcite-shell>
