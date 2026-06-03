@@ -14,11 +14,6 @@ const mapEl = document.getElementById("mapEl");
 const actionBar = document.getElementById("action-bar");
 const resetListsButton = document.getElementById("reset-list-button");
 
-mapEl.map = appState.map;
-
-
-
-
 function createListItemForField(f){
  // creating a calcite list item for the field        
   const listItem = document.createElement("calcite-list-item");
