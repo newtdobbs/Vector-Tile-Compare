@@ -1,15 +1,18 @@
+// the dictionary which will represent the current state of the app 
 export const appState = {
   map: null,
   view: null,
-  layerDefinitionExpressions: [],
-  activeDefinitionExpression: null,
-  activeDefinitionExpressionField: null,
   allTileLayers: [],
-  defaultFilterField: 'Building',
+  defaultFilterField: "Building",
   filterField: null,
-  activeFeatureLayers: [],
   topLayer: null,
   bottomLayer: null,
-  maxLayerListSelectedItems: 2,
-  currentSelectedLayers: null
-}
+  selectedLayerItemsByTree: {
+    top: null,
+    bottom: null
+  },
+  layerSwapRequestVersion: {
+    topLayer: 0,
+    bottomLayer: 0
+  }
+};

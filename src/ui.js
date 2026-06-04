@@ -1,134 +1,145 @@
 import { appState } from "../state";
 import { ignoreFields } from "./constants";
-import { changeFilterField, changeMapLayers } from "./map"
-const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
-const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
+import { changeFilterField, changeMapLayers } from "./map";
+import {
+  clearFilterField,
+  setFilterField,
+  setSelectedLayerItemForTree,
+} from "./stateActions";
 
-// dom elements
-const shellPanel = document.getElementById("shell-panel");
 const fieldsList = document.getElementById("fields-list");
-const layerList = document.getElementById("layer-list");
-export const topLayerList = document.getElementById("top-list");
-export const bottomLayerList = document.getElementById("bottom-list");
-const mapEl = document.getElementById("mapEl");
-const actionBar = document.getElementById("action-bar");
-const resetListsButton = document.getElementById("reset-list-button");
 
-function createListItemForField(f){
- // creating a calcite list item for the field        
+/**
+ * creates a calcite-list-item for a given field present in our feature layer
+ * 
+ * @param {object} field - the field object as represented from the ArcGIS JS API
+ */
+function createListItemForField(field) {
   const listItem = document.createElement("calcite-list-item");
-  listItem.label = f.alias;
+  listItem.label = field.alias;
   listItem.scale = "s";
-  listItem.value = f.name;
+  listItem.value = field.name;
   listItem.closable = true;
 
-  // changing the selected field
   listItem.addEventListener("calciteListItemSelect", () => {
-    // SELECTION EVENT
-    if (listItem.selected){
-      console.log('field selected', f.name)
-      appState.filterField = f; // assigning the selected field list item to state
+    if (listItem.selected) { // if the field is selected, we want to set it as the filter
+      setFilterField(field);
+    } else { // if the field is unselected, we want to clear the filter
+      clearFilterField(); 
     }
-    // DESELECTION EVENT, REMOVE STATE FILTER
-    else {
-      console.log(f.name, 'removed as filter field')
-      appState.filterField = null;
-    }
-    changeFilterField(); // changing the field filter, either swapping for selected field or removing filter entirely
+    changeFilterField(); // after updating the filter field in state, we call this to update the map
   });
-  
-  // removing a field for the list
+
   listItem.addEventListener("calciteListItemClose", () => {
-    console.log(`Remove clicked for field ${listItem.value}, definition expression is: ${appState.defintionExpression}`);
-    if (listItem.value === appState.filterField.name) {
+    // if the field that is removed is the current state filter, we warn the user and prevent its removal
+    if (appState.filterField?.name && listItem.value === appState.filterField.name) { 
       warnUser("Please select a different filter field before removing the selected field.");
-      return; // won't remove the field if it is the current state filter
+      return;
     } else {
-      warnUser("Removing field: ", f.alias);
-      listItem.remove();
+        warnUser(`Removing field: ${field.alias}`);
+        listItem.remove();
     }
   });
 
-  if (f.name === appState.defaultFilterField){ //select list item which matches the definition expression
-    listItem.selected = true
+  // if the field matches the default ('Building'), we'll make sure the field entry is selected
+  if (field.name === appState.defaultFilterField) {
+    listItem.selected = true;
+    setFilterField(field);
   }
-  
-  fieldsList.appendChild(listItem); // finally adding the item to the DOM list
+
+  fieldsList.appendChild(listItem);
 }
 
-// populating the fields list based on the first layer
-export async function populateFieldsList(){
-  fieldsList.innerHTML = ""; // removing any preexising HTML from the fields list
-  const firstLayer = appState.map.layers.items[0]
-  await firstLayer.when(() => {
-    firstLayer.fields.forEach(field => { // we'll just use the first layer by default
-      if (!ignoreFields.includes(field.name)) {
-        createListItemForField(field);
-      }
-    });
+/**
+ * populates the calcite-list of the feature layer's fields with an entry for each field
+ * 
+ * @param {object} field - the field object as represented from the ArcGIS JS API
+ */
+export async function populateFieldsList() {
+  fieldsList.innerHTML = "";
+
+  const firstLayer = appState.map?.layers?.items?.[0]; // we'll just use the first layer in the map to determine the fields available
+  if (!firstLayer) {
+    warnUser("Unable to populate fields: map layer is not available.");
+    return;
+  }
+
+  // when the first layer is ready, we loop through its fields and create a calcite list item for each field
+  await firstLayer.when();
+  firstLayer.fields.forEach((field) => {
+    if (!ignoreFields.includes(field.name)) {
+      createListItemForField(field);
+    }
   });
-};
+}
 
-
+/**
+ * populates the calcite tree dropdowns with an item for each of the vector tile layers in state
+ * 
+ * @param {string} key - the name ('top' or 'bottom') of the tree to populate, which will determine the layer to select
+ */
 export function populateLayerList(key) {
   const tree = document.getElementById(`${key}-tree`);
-  tree.innerHTML = ""; // clearing the list
-  appState.currentSelectedLayers = [];
+  if (!tree) {
+    return;
+  }
 
-  console.log('All tile layers:', appState.allTileLayers)
+  tree.innerHTML = ""; // clearing the HTML from the tree
+
+  // looping through all the tile layers in state
   for (const layer of appState.allTileLayers) {
-    //  list item to represent the layer
     const treeItem = document.createElement("calcite-tree-item");
     treeItem.label = layer.item.title;
-    treeItem.textContent = layer.item.title
-    
-    // selecting the items corresponding to the top layer and bottom layer
-    if (layer.item.title === appState[`${key}Layer`].title){
-      treeItem.selected = true;
-      appState.currentSelectedLayers.push(layer.item);
-    }
+    treeItem.textContent = layer.item.title;
     treeItem.expanded = true;
+
+    // selecting the tree item that corresponds to the map layer (top layer for top tree, bottom layer for bottom tree)
+    const isActiveLayer = layer.item.title === appState[`${key}Layer`].title;
+    if (isActiveLayer) {
+      treeItem.selected = true;
+      setSelectedLayerItemForTree(key, layer.item);
+    }
+
     tree.appendChild(treeItem);
 
-    // selection event
-      treeItem.addEventListener("click", ()=>{ 
-        // RESELECTING STATE LAYER, JUST CHANGE VISIBILITY
-        if (layer.item.title === appState[`${key}Layer`].title){
-          // SELECTION EVENT
-          if(treeItem.selected){ 
-            console.log(`Making ${layer.item.title} visible`)
-            appState[`${key}Layer`].visible = true;
-            
-            // DESELECTION EVENT, HIDE LAYER
-          } else {
-            console.log(`Hiding ${layer.item.title}`)
-            appState[`${key}Layer`].visible = false;
+    treeItem.addEventListener("click", async () => {
+      if (layer.item.title === appState[`${key}Layer`].title) {
+        appState[`${key}Layer`].visible = treeItem.selected; // setting the layer's visibility to match its selection
+        return;
+      }
 
-          }
-        // SELECTING A DIFFERENT LAYER, NEED TO CHANGE MAP STATE
-        }else{ 
-          console.log(`Different layer selected, ${layer.item.title} does not match ${appState[`${key}Layer`].title}`)
-          changeMapLayers(`${key}Layer`, layer.item)
-        }
-      })
+      treeItem.disabled = true;
+      const applied = await changeMapLayers(`${key}Layer`, layer.item);
+      treeItem.disabled = false;
+
+      if (applied) {
+        setSelectedLayerItemForTree(key, layer.item);
+        populateLayerList(key);
+      }
+    });
   }
 }
 
-export function warnUser(message){
-  // clear any existing warnings
-  const existingAlert = document.querySelector("calcite-alert")
-  if(existingAlert) existingAlert.remove(); // clearing any preexisting alerts
+/**
+ * a helper functiuon to warn the user 
+ * 
+ * @param {string} message - the string to display in the calcite alert
+ */
+export function warnUser(message) {
+  const existingAlert = document.querySelector("calcite-alert");
+  if (existingAlert) {
+    existingAlert.remove();
+  }
 
-  // displaying an alert, warning the user to turn on the overlay when taking screensbot 
   const newAlert = document.createElement("calcite-alert");
   newAlert.open = true;
   newAlert.kind = "warning";
   newAlert.autoDismiss = true;
+
   const title = document.createElement("calcite-alert-message");
   title.textContent = message;
   title.slot = "title";
   newAlert.appendChild(title);
 
-  // appending the warning to the DOM
   document.body.appendChild(newAlert);
 }
