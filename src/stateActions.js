@@ -4,9 +4,8 @@ export function setDefaultFilterField(fieldName) {
   appState.defaultFilterField = fieldName;
 }
 
-export function setMapContext({ map, view }) {
+export function setMapContext(map) {
   appState.map = map;
-  appState.view = view;
 }
 
 export function setTileLayers(tileLayers) {

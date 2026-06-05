@@ -1,3 +1,9 @@
+const BasemapGallery = await $arcgis.import("@arcgis/core/widgets/BasemapGallery.js");
+const Search = await $arcgis.import("@arcgis/core/widgets/Search.js");
+const Zoom = await $arcgis.import("@arcgis/core/widgets/Zoom.js");
+const UI = await $arcgis.import("@arcgis/core/views/ui/UI.js");
+import "@arcgis/map-components/components/arcgis-basemap-toggle";
+
 import { appState } from "../state";
 import "../style.css";
 import { warnUser } from "./ui";
@@ -22,7 +28,6 @@ const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js")
 const FeatureEffect = await $arcgis.import("@arcgis/core/layers/support/FeatureEffect.js");
 const FeatureFilter = await $arcgis.import("@arcgis/core/layers/support/FeatureFilter.js");
 const mapEl = document.getElementById("mapEl");
-import "@arcgis/map-components/components/arcgis-basemap-gallery";
 
 // signing into the portal
 let info = new OAuthInfo({
@@ -107,7 +112,7 @@ export async function createDefaultMap(layerItems) {
     setActiveLayer("topLayer", new FeatureLayer({ portalItem: { id: olderItem.item.id } })); // and assigning the top layer to the older one 
     // console.log('APP STATE TOP LAYER', appState.topLayer) // log for debug
     
-    const map = new Map({ basemap: APP_CONFIG.map.basemap }); // creating an empty map with dark-gray-vector base
+    const myMap = new Map({ basemap: APP_CONFIG.map.basemap }); // creating an empty map with dark-gray-vector base
     
     const symbolSize = APP_CONFIG.map.symbolSize;
     
@@ -161,31 +166,26 @@ export async function createDefaultMap(layerItems) {
     }
     
     // adding layers to map after applying effects (just to be safe with the order)
-    map.add(appState.bottomLayer)
-    map.add(appState.topLayer)
-    
-    // creating a new MapView from the map we created
-    const view = new MapView({
-        container: mapEl, // the dom element to hold our map
-        map: map,
-        ui: { components: [] }
-    });
-    
-    // zooming to our map's default location/scale
-    view.when(() => {
-        view.goTo({ 
-            target: APP_CONFIG.map.initialCenter,
-            zoom: APP_CONFIG.map.initialZoom
-        });
+    myMap.add(appState.bottomLayer)
+    myMap.add(appState.topLayer)
+
+
+    mapEl.map = myMap // assigning the map we've created to the dom element
+
+
+    // zooming to our map's default location & zoom level
+    mapEl.addEventListener("arcgisViewReadyChange", () => {
+        // console.log('map is ready') // log for debug
+        mapEl.view.goTo(APP_CONFIG.map.initialCenter)
+        mapEl.zoom = APP_CONFIG.map.initialZoom  
     })
-    
-    mapEl.map = map; // assignging our map to the dom element
-    setMapContext({ map, view });
-    return map;
+
+    setMapContext(myMap);
+    return myMap;
 }
 
 /**
- * Changes the field being used to filter visible points
+ * Changes the field being used to filter visible features, either by switching the field, or removing the filter entirely
  */
 export function changeFilterField(){
     const view = appState.view; // pulls the view from state
@@ -201,13 +201,13 @@ export function changeFilterField(){
 
         const map = view.map; // we pull the map from the view
         
-        // if there is a filter APPLIED
+        // if there IS a filter applied
         if (appState.filterField) {
             warnUser(`Changing filter field to: "${appState.filterField.name}"`);
             map.layers.forEach((layer) => { // looping through the map's layers
                 // console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`); // log for debug
                 // console.log(`New definition expression: ${layer.definitionExpression}`); // log for debug
-                // console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // log for debug
+                // console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // log for  debug
                 layer.definitionExpression = getDefinitionExpression(appState.filterField.name); // applying the newly selected field as a definition expression
             });
 
