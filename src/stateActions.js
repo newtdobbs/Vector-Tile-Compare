@@ -8,6 +8,10 @@ export function setMapContext(map) {
   appState.map = map;
 }
 
+export function setViewContext(view) {
+  appState.view = view;
+}
+
 export function setTileLayers(tileLayers) {
   appState.allTileLayers = tileLayers;
 }

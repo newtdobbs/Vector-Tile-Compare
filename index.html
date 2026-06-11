@@ -55,14 +55,11 @@
       </calcite-panel>
     </calcite-shell-panel>
 
-    <!-- <div id="mapEl"> -->
-      <!-- <arcgis-zoom slot="top-right"  reference-element="mapEl"></arcgis-zoom> -->
-      <!-- <arcgis-search slot="top-left" reference-element="mapEl"></arcgis-search> -->
-    <!-- </div> -->
-    <arcgis-map id="mapEl">
+    
+    <arcgis-map id="mapEl" popup-disabled>
+      <arcgis-popup slot="popup" id="map-popup"></arcgis-popup>
       <arcgis-zoom slot="top-right"></arcgis-zoom>
-      <arcgis-search slot="top-left"></arcgis-search>
-
+      <arcgis-search slot="top-left"></arcgis-search> 
     </arcgis-map>
 
   </calcite-shell>

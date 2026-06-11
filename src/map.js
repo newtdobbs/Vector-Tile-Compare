@@ -3,6 +3,7 @@ const Search = await $arcgis.import("@arcgis/core/widgets/Search.js");
 const Zoom = await $arcgis.import("@arcgis/core/widgets/Zoom.js");
 const UI = await $arcgis.import("@arcgis/core/views/ui/UI.js");
 import "@arcgis/map-components/components/arcgis-basemap-toggle";
+import "@arcgis/map-components/components/arcgis-popup";
 
 import { appState } from "../state";
 import "../style.css";
@@ -12,7 +13,9 @@ import {
     isLayerSwapVersionCurrent,
     nextLayerSwapVersion,
     setActiveLayer,
+    setFilterField,
     setMapContext,
+    setViewContext,
     setTileLayers
 } from "./stateActions";
 
@@ -27,7 +30,28 @@ const PictureMarkerSymbol = await $arcgis.import("@arcgis/core/symbols/PictureMa
 const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
 const FeatureEffect = await $arcgis.import("@arcgis/core/layers/support/FeatureEffect.js");
 const FeatureFilter = await $arcgis.import("@arcgis/core/layers/support/FeatureFilter.js");
+const PopupTemplate = await $arcgis.import("@arcgis/core/PopupTemplate.js");
 const mapEl = document.getElementById("mapEl");
+const popupComponent = document.getElementById("map-popup");
+
+function waitForMapView() {
+    if (mapEl.view) {
+        return Promise.resolve(mapEl.view);
+    }
+
+    return new Promise((resolve) => {
+        const handleViewReady = () => {
+            if (!mapEl.view) {
+                return;
+            }
+
+            mapEl.removeEventListener("arcgisViewReadyChange", handleViewReady);
+            resolve(mapEl.view);
+        };
+
+        mapEl.addEventListener("arcgisViewReadyChange", handleViewReady);
+    });
+}
 
 // signing into the portal
 let info = new OAuthInfo({
@@ -111,10 +135,25 @@ export async function createDefaultMap(layerItems) {
    
     setActiveLayer("topLayer", new FeatureLayer({ portalItem: { id: olderItem.item.id } })); // and assigning the top layer to the older one 
     // console.log('APP STATE TOP LAYER', appState.topLayer) // log for debug
+
+    await Promise.all([appState.topLayer.load(), appState.bottomLayer.load()]);
+
+    const initialFilterFieldName = appState.defaultFilterField || APP_CONFIG.filters.defaultField;
+    const initialFilterField =
+        appState.topLayer.fields?.find((field) => field.name === initialFilterFieldName) ||
+        appState.bottomLayer.fields?.find((field) => field.name === initialFilterFieldName) ||
+        appState.topLayer.fields?.[0] ||
+        appState.bottomLayer.fields?.[0] ||
+        null;
+
+    if (initialFilterField) {
+        setFilterField(initialFilterField);
+    }
     
     const myMap = new Map({ basemap: APP_CONFIG.map.basemap }); // creating an empty map with dark-gray-vector base
     
     const symbolSize = APP_CONFIG.map.symbolSize;
+
     
     // assigning the renderer for the map's bottom layer once the map loads
     appState.bottomLayer.when(() => {
@@ -149,7 +188,8 @@ export async function createDefaultMap(layerItems) {
     // assigning the definition expression and 
     for (const l of [appState.topLayer, appState.bottomLayer]) {
 
-        l.definitionExpression = getDefinitionExpression(APP_CONFIG.filters.defaultField); // assigning the default filter field
+        const activeFieldName = appState.filterField?.name || APP_CONFIG.filters.defaultField;
+        l.definitionExpression = getDefinitionExpression(activeFieldName);
         
         const featureFilter = new FeatureFilter({
             where: `SIZE > ${APP_CONFIG.filters.featureEffectThreshold}` // assigning the default feature effect threshold
@@ -163,6 +203,12 @@ export async function createDefaultMap(layerItems) {
                 excludedEffect: "opacity(0.35)"
             });
         }); 
+        
+        l.popupTemplate = {
+            title: "ROW: {ROW}, COL: {COL}",
+            outFields: ["*"],
+            content: `${appState.filterField.name}: {${String(appState.filterField.name)}}`
+        };
     }
     
     // adding layers to map after applying effects (just to be safe with the order)
@@ -173,14 +219,22 @@ export async function createDefaultMap(layerItems) {
     mapEl.map = myMap // assigning the map we've created to the dom element
 
 
-    // zooming to our map's default location & zoom level
-    mapEl.addEventListener("arcgisViewReadyChange", () => {
-        // console.log('map is ready') // log for debug
-        mapEl.view.goTo(APP_CONFIG.map.initialCenter)
-        mapEl.zoom = APP_CONFIG.map.initialZoom  
-    })
+    const view = await waitForMapView();
+    await view.when();
+
+    await view.goTo(APP_CONFIG.map.initialCenter);
+    mapEl.zoom = APP_CONFIG.map.initialZoom;
 
     setMapContext(myMap);
+    setViewContext(view);
+
+    // event listener for popup
+    mapEl.addEventListener("arcgisViewClick", ({ detail }) => {
+        const {x, y} = detail;
+        popupComponent.open = true;
+        popupComponent.fetchFeatures({x, y}, { event: detail} )
+    });
+
     return myMap;
 }
 
@@ -189,8 +243,9 @@ export async function createDefaultMap(layerItems) {
  */
 export function changeFilterField(){
     const view = appState.view; // pulls the view from state
-    if (!view) {
-        warnUser("View is not ready yet. Please try again in a moment.");
+
+    if (!view || !appState.map) {
+        warnUser("Map view is still loading. Please try again in a moment.");
         return;
     }
 
@@ -203,27 +258,39 @@ export function changeFilterField(){
         
         // if there IS a filter applied
         if (appState.filterField) {
-            warnUser(`Changing filter field to: "${appState.filterField.name}"`);
             map.layers.forEach((layer) => { // looping through the map's layers
                 // console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`); // log for debug
                 // console.log(`New definition expression: ${layer.definitionExpression}`); // log for debug
                 // console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // log for  debug
                 layer.definitionExpression = getDefinitionExpression(appState.filterField.name); // applying the newly selected field as a definition expression
+                // reassigning the popup template when the filter field changes  
+                layer.popupTemplate = {
+                    title: "ROW: {ROW}, COL: {COL}",
+                    outFields: ["*"],
+                    content: `${appState.filterField.name}: {${String(appState.filterField.name)}}`
+                };
             });
-
-
-        // otherwise the filter has been REMOVED
+            
+            
+            // otherwise the filter has been REMOVED
         } else {
             warnUser("Removing filter field");
             map.layers.forEach((layer) => {
                 // console.log(`New definition expression: ${layer.definitionExpression}`); // log for debug
                 // console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // log for debug
                 layer.definitionExpression = null; // removing the definition expression
+                layer.popupTemplate = {
+                    title: "ROW: {ROW}, COL: {COL}",
+                    // outFields: ["*"],
+                    content: "No filter field selected."
+                };
             });
         }
     }, function(error){
         warnUser("An error occured while changing the map filter.")
+        return
     })
+    warnUser(`Filter field changed to: "${appState.filterField.name}"`, "success");
 }
 
 /**

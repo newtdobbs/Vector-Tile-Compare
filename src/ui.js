@@ -1,4 +1,5 @@
 import { appState } from "../state";
+import { APP_CONFIG } from "./config";
 import { ignoreFields } from "./constants";
 import { changeFilterField, changeMapLayers } from "./map";
 import {
@@ -37,15 +38,17 @@ function createListItemForField(field) {
       return;
     } else {
         warnUser(`Removing field: ${field.alias}`);
-        listItem.remove();
+        fieldsList.remove(listItem);
     }
   });
 
   // if the field matches the default ('Building'), we'll make sure the field entry is selected
   if (field.name === appState.defaultFilterField) {
+    appState.filterField = field;
     listItem.selected = true;
     setFilterField(field);
   }
+
 
   fieldsList.appendChild(listItem);
 }
@@ -67,6 +70,10 @@ export async function populateFieldsList() {
   // when the first layer is ready, we loop through its fields and create a calcite list item for each field
   await firstLayer.when();
   firstLayer.fields.forEach((field) => {
+    // assigning the default field in state also to the currently active field
+    if(field.name === APP_CONFIG.filters.defaultField) {
+      appState.filterField = field;
+    }
     if (!ignoreFields.includes(field.name)) {
       createListItemForField(field);
     }
@@ -124,8 +131,9 @@ export function populateLayerList(key) {
  * a helper functiuon to warn the user 
  * 
  * @param {string} message - the string to display in the calcite alert
+ * @param {kind} message - the type (color) of the calcite alert
  */
-export function warnUser(message) {
+export function warnUser(message, kind="warning") {
   const existingAlert = document.querySelector("calcite-alert");
   if (existingAlert) {
     existingAlert.remove();
@@ -133,8 +141,8 @@ export function warnUser(message) {
 
   const newAlert = document.createElement("calcite-alert");
   newAlert.open = true;
-  newAlert.kind = "warning";
-  newAlert.autoDismiss = true;
+  newAlert.kind = kind;
+  newAlert.autoClose = true;
 
   const title = document.createElement("calcite-alert-message");
   title.textContent = message;
