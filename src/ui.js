@@ -99,25 +99,35 @@ export function populateLayerList(key) {
     treeItem.label = layer.item.title;
     treeItem.textContent = layer.item.title;
     treeItem.expanded = true;
-
+    treeItem.iconStart = "view-hide" // by default, the tree item icon represents non-visibility
+    
     // selecting the tree item that corresponds to the map layer (top layer for top tree, bottom layer for bottom tree)
     const isActiveLayer = layer.item.title === appState[`${key}Layer`].title;
     if (isActiveLayer) {
       treeItem.selected = true;
+      treeItem.iconStart = "view-visible" // by default, the tree item icon represents non-visibility
       setSelectedLayerItemForTree(key, layer.item);
     }
 
     tree.appendChild(treeItem);
 
-    treeItem.addEventListener("click", async () => {
+    treeItem.addEventListener("calciteTreeItemSelect", async () => {
       if (layer.item.title === appState[`${key}Layer`].title) {
         appState[`${key}Layer`].visible = treeItem.selected; // setting the layer's visibility to match its selection
+        treeItem.iconStart = treeItem.selected ? "view-visible" : "view-hide";
         return;
       }
 
       treeItem.disabled = true;
       const applied = await changeMapLayers(`${key}Layer`, layer.item);
       treeItem.disabled = false;
+
+      if (appState[`${key}Layer`].visible) {
+        treeItem.iconStart =  "view-visible";
+        
+      } else {
+        treeItem.iconStart =  "view-hide";
+      }
 
       if (applied) {
         setSelectedLayerItemForTree(key, layer.item);
@@ -126,6 +136,9 @@ export function populateLayerList(key) {
     });
   }
 }
+
+
+
 
 /**
  * a helper functiuon to warn the user 

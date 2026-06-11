@@ -293,6 +293,11 @@ export function changeFilterField(){
     warnUser(`Filter field changed to: "${appState.filterField.name}"`, "success");
 }
 
+const sliderElement = document.getElementById("lod-slider")
+sliderElement.addEventListener("calciteSliderChange", () => {
+    console.log(`Slider changed to min(${sliderElement.minValue}), max(${sliderElement.maxValue})`)
+})
+
 /**
  * Calculates the total cost of items including tax.
  * 
