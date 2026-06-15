@@ -28,6 +28,10 @@ export function clearFilterField() {
   appState.filterField = null;
 }
 
+export function setMapLOD(minLOD, maxLOD){
+  appState.LODRange = [minLOD, maxLOD]
+}
+
 export function setSelectedLayerItemForTree(treeKey, layerItem) {
   appState.selectedLayerItemsByTree[treeKey] = layerItem;
 }
@@ -39,4 +43,14 @@ export function nextLayerSwapVersion(layerKey) {
 
 export function isLayerSwapVersionCurrent(layerKey, version) {
   return appState.layerSwapRequestVersion[layerKey] === version;
+}
+
+export function getDefinitionExpression() {
+  // if there is a filter field applied
+  if (appState.filterField){
+    return `${appState.filterField.name} > 0 AND (LOD >= ${appState.LODRange[0]} AND LOD <= ${appState.LODRange[1]})`;
+  // otherwise there is no filter field applied, so we only use the LOD range for the definition expression
+  } else {
+    return `LOD >= ${appState.LODRange[0]} AND LOD <= ${appState.LODRange[1]}`;
+  }
 }

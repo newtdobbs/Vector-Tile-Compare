@@ -5,6 +5,7 @@ export const appState = {
   allTileLayers: [],
   defaultFilterField: "Building",
   filterField: null,
+  LODRange: [0, 16],
   topLayer: null,
   bottomLayer: null,
   selectedLayerItemsByTree: {

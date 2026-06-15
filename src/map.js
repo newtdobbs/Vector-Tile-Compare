@@ -8,7 +8,7 @@ import "@arcgis/map-components/components/arcgis-popup";
 import { appState } from "../state";
 import "../style.css";
 import { warnUser } from "./ui";
-import { APP_CONFIG, getDefinitionExpression } from "./config";
+import { APP_CONFIG } from "./config";
 import {
     isLayerSwapVersionCurrent,
     nextLayerSwapVersion,
@@ -16,7 +16,8 @@ import {
     setFilterField,
     setMapContext,
     setViewContext,
-    setTileLayers
+    setTileLayers,
+    getDefinitionExpression
 } from "./stateActions";
 
 const [Map, MapView] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/core/views/MapView.js"]);
@@ -189,7 +190,7 @@ export async function createDefaultMap(layerItems) {
     for (const l of [appState.topLayer, appState.bottomLayer]) {
 
         const activeFieldName = appState.filterField?.name || APP_CONFIG.filters.defaultField;
-        l.definitionExpression = getDefinitionExpression(activeFieldName);
+        l.definitionExpression = getDefinitionExpression();
         
         const featureFilter = new FeatureFilter({
             where: `SIZE > ${APP_CONFIG.filters.featureEffectThreshold}` // assigning the default feature effect threshold
@@ -204,12 +205,11 @@ export async function createDefaultMap(layerItems) {
             });
         }); 
         
-        l.popupTemplate = {
-            title: "ROW: {ROW}, COL: {COL}",
-            outFields: ["*"],
-            content: `${appState.filterField.name}: {${String(appState.filterField.name)}}`
-        };
+
     }
+
+    // assembling defintion expressions
+    applyFiltersToMap();
     
     // adding layers to map after applying effects (just to be safe with the order)
     myMap.add(appState.bottomLayer)
@@ -238,6 +238,30 @@ export async function createDefaultMap(layerItems) {
     return myMap;
 }
 
+// this function will rebuild the map features based on field list selection or LOD slider changes
+export function applyFiltersToMap(){
+    const definitionExpression = getDefinitionExpression();
+    const popupContent = appState.filterField
+        ? `${appState.filterField.name}: {${String(appState.filterField.name)}}`
+        : "No filter field applied";
+
+    for (const layer of [appState.topLayer, appState.bottomLayer]) {
+        if (!layer) {
+            continue;
+        }
+
+        layer.definitionExpression = definitionExpression;
+        layer.popupTemplate = {
+            title: "ROW: {ROW}, COL: {COL}",
+            outFields: ["*"],
+            content: popupContent
+        };
+    }
+
+    return definitionExpression;
+}
+
+
 /**
  * Changes the field being used to filter visible features, either by switching the field, or removing the filter entirely
  */
@@ -251,52 +275,23 @@ export function changeFilterField(){
 
     // once the view is fully loaded
     view.when(function() {
+        const definitionExpression = applyFiltersToMap();
+        console.log("--------- NEW DEFINITION EXPRESSION ---------");
+        console.log(definitionExpression);
+        console.log("---------------------------------------------");
 
-        console.log('loaded view', view)
-
-        const map = view.map; // we pull the map from the view
-        
-        // if there IS a filter applied
-        if (appState.filterField) {
-            map.layers.forEach((layer) => { // looping through the map's layers
-                // console.log(`Changing filter field for ${layer.title} to ${appState.filterField.alias}`); // log for debug
-                // console.log(`New definition expression: ${layer.definitionExpression}`); // log for debug
-                // console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // log for  debug
-                layer.definitionExpression = getDefinitionExpression(appState.filterField.name); // applying the newly selected field as a definition expression
-                // reassigning the popup template when the filter field changes  
-                layer.popupTemplate = {
-                    title: "ROW: {ROW}, COL: {COL}",
-                    outFields: ["*"],
-                    content: `${appState.filterField.name}: {${String(appState.filterField.name)}}`
-                };
-            });
-            
-            
-            // otherwise the filter has been REMOVED
-        } else {
-            warnUser("Removing filter field");
-            map.layers.forEach((layer) => {
-                // console.log(`New definition expression: ${layer.definitionExpression}`); // log for debug
-                // console.log(`For ${layer.title} the featureEffect is:`, layer.featureEffect); // log for debug
-                layer.definitionExpression = null; // removing the definition expression
-                layer.popupTemplate = {
-                    title: "ROW: {ROW}, COL: {COL}",
-                    // outFields: ["*"],
-                    content: "No filter field selected."
-                };
-            });
-        }
     }, function(error){
         warnUser("An error occured while changing the map filter.")
         return
     })
-    warnUser(`Filter field changed to: "${appState.filterField.name}"`, "success");
+
+    if (appState.filterField?.name) {
+        warnUser(`Filter field changed to: "${appState.filterField.name}"`, "success");
+    } else {
+        warnUser("Filter field cleared.", "success");
+    }
 }
 
-const sliderElement = document.getElementById("lod-slider")
-sliderElement.addEventListener("calciteSliderChange", () => {
-    console.log(`Slider changed to min(${sliderElement.minValue}), max(${sliderElement.maxValue})`)
-})
 
 /**
  * Calculates the total cost of items including tax.

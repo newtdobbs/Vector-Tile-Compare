@@ -1,14 +1,16 @@
 import { appState } from "../state";
 import { APP_CONFIG } from "./config";
 import { ignoreFields } from "./constants";
-import { changeFilterField, changeMapLayers } from "./map";
+import { changeFilterField, changeMapLayers, applyFiltersToMap } from "./map";
 import {
   clearFilterField,
   setFilterField,
   setSelectedLayerItemForTree,
+  setMapLOD
 } from "./stateActions";
 
 const fieldsList = document.getElementById("fields-list");
+const LODSlider = document.getElementById("lod-slider");
 
 /**
  * creates a calcite-list-item for a given field present in our feature layer
@@ -137,6 +139,12 @@ export function populateLayerList(key) {
   }
 }
 
+LODSlider.addEventListener("calciteSliderChange", () => {
+  // console.log(`Slider changed to min(${LODSlider.minValue}), max(${LODSlider.maxValue})`)
+  setMapLOD(LODSlider.minValue, LODSlider.maxValue);
+  applyFiltersToMap();
+
+})
 
 
 

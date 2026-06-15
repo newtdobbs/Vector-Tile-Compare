@@ -22,6 +22,8 @@ export const APP_CONFIG = Object.freeze({
     defaultField: import.meta.env.VITE_DEFAULT_FILTER_FIELD ?? "Building",
     defaultThreshold: parseNumber(import.meta.env.VITE_DEFAULT_FILTER_THRESHOLD, 0),
     featureEffectThreshold: parseNumber(import.meta.env.VITE_FEATURE_EFFECT_THRESHOLD, 40000),
+    minLOD: parseNumber(import.meta.env.VITE_MIN_LOD ?? 0),
+    maxLOD: parseNumber(import.meta.env.VITE_MAX_LOD ?? 16)
   },
   map: {
     basemap: import.meta.env.VITE_BASEMAP ?? "dark-gray-vector",
@@ -31,6 +33,3 @@ export const APP_CONFIG = Object.freeze({
   },
 });
 
-export function getDefinitionExpression(fieldName) {
-  return `${fieldName} > ${APP_CONFIG.filters.defaultThreshold}`;
-}
