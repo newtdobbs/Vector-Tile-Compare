@@ -37,3 +37,12 @@ arcgis-basemap-gallery {
   flex-wrap: wrap;
 }
 
+#basemap-style-toggle {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+#basemap-style-toggle calcite-button {
+  flex: 1;
+}

@@ -1,5 +1,4 @@
-import { appState } from "../state";
-import { APP_CONFIG } from "./config";
+import { appState } from "./state/store";
 import { ignoreFields } from "./constants";
 import { changeFilterField, changeMapLayers, applyFiltersToMap } from "./map";
 import {
@@ -7,7 +6,7 @@ import {
   setFilterField,
   setSelectedLayerItemForTree,
   setMapLOD
-} from "./stateActions";
+} from "./state/actions";
 
 const fieldsList = document.getElementById("fields-list");
 const LODSlider = document.getElementById("lod-slider");
@@ -73,7 +72,7 @@ export async function populateFieldsList() {
   await firstLayer.when();
   firstLayer.fields.forEach((field) => {
     // assigning the default field in state also to the currently active field
-    if(field.name === APP_CONFIG.filters.defaultField) {
+    if(field.name === appState.defaultField) {
       appState.filterField = field;
     }
     if (!ignoreFields.includes(field.name)) {
@@ -143,7 +142,6 @@ LODSlider.addEventListener("calciteSliderChange", () => {
   // console.log(`Slider changed to min(${LODSlider.minValue}), max(${LODSlider.maxValue})`)
   setMapLOD(LODSlider.minValue, LODSlider.maxValue);
   applyFiltersToMap();
-
 })
 
 

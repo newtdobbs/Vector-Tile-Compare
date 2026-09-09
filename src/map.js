@@ -5,10 +5,9 @@ const UI = await $arcgis.import("@arcgis/core/views/ui/UI.js");
 import "@arcgis/map-components/components/arcgis-basemap-toggle";
 import "@arcgis/map-components/components/arcgis-popup";
 
-import { appState } from "../state";
+import { appState } from "./state/store";
 import "../style.css";
 import { warnUser } from "./ui";
-import { APP_CONFIG } from "./config";
 import {
     isLayerSwapVersionCurrent,
     nextLayerSwapVersion,
@@ -18,7 +17,7 @@ import {
     setViewContext,
     setTileLayers,
     getDefinitionExpression
-} from "./stateActions";
+} from "./state/actions";
 
 const [Map, MapView] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/core/views/MapView.js"]);
 const PictureMarkerSymbol = await $arcgis.import("@arcgis/core/symbols/PictureMarkerSymbol.js");
@@ -56,10 +55,10 @@ function waitForMapView() {
 
 // signing into the portal
 let info = new OAuthInfo({
-    appId: APP_CONFIG.oauth.appId,
-    portalUrl: APP_CONFIG.oauth.portalUrl,
-    flowType: APP_CONFIG.oauth.flowType,
-    popup: APP_CONFIG.oauth.popup,
+    appId: appState.appId, 
+    portalUrl: appState.portalUrl,
+    flowType: appState.flowType,
+    popup: appState.popup,
 });
 
 esriId.registerOAuthInfos([info]);
@@ -81,8 +80,8 @@ document.getElementById("sign-in-button").addEventListener("click", () => {
  */
 export async function queryItemsFromGroup(){
     const params = new PortalQueryParams({
-        query: `group:${APP_CONFIG.groupQuery.groupId}`, // grabbing the items from Jim's group
-        num: APP_CONFIG.groupQuery.maxItems // setting a max of 20 items
+        query: `group:${appState.groupID}`, // grabbing the items from Jim's group
+        num: appState.maxItems // setting a max of 20 items
     });
     
     const portal = new Portal();
@@ -92,10 +91,10 @@ export async function queryItemsFromGroup(){
    const results = await portal.queryItems(params);
     const allTileStats = results.results.filter(
         // filtering to only layers that contain "Esri Vector Basemap Tile Statistics"
-        (item) => item.isLayer && item.title.includes(APP_CONFIG.groupQuery.requiredTitleText)
+        (item) => item.isLayer && item.title.includes(appState.requiredTitleText)
     );
 
-    // console.log('All tile stats', allTileStats) // log for debug
+    console.log('All tile stats', allTileStats) // log for debug
 
    return allTileStats;
 };
@@ -139,7 +138,7 @@ export async function createDefaultMap(layerItems) {
 
     await Promise.all([appState.topLayer.load(), appState.bottomLayer.load()]);
 
-    const initialFilterFieldName = appState.defaultFilterField || APP_CONFIG.filters.defaultField;
+    const initialFilterFieldName = appState.defaultFilterField;
     const initialFilterField =
         appState.topLayer.fields?.find((field) => field.name === initialFilterFieldName) ||
         appState.bottomLayer.fields?.find((field) => field.name === initialFilterFieldName) ||
@@ -151,9 +150,9 @@ export async function createDefaultMap(layerItems) {
         setFilterField(initialFilterField);
     }
     
-    const myMap = new Map({ basemap: APP_CONFIG.map.basemap }); // creating an empty map with dark-gray-vector base
+    const myMap = new Map({ basemap: appState.basemap }); // creating an empty map with dark-gray-vector base
     
-    const symbolSize = APP_CONFIG.map.symbolSize;
+    const symbolSize = appState.symbolSize;
 
     
     // assigning the renderer for the map's bottom layer once the map loads
@@ -189,11 +188,11 @@ export async function createDefaultMap(layerItems) {
     // assigning the definition expression and 
     for (const l of [appState.topLayer, appState.bottomLayer]) {
 
-        const activeFieldName = appState.filterField?.name || APP_CONFIG.filters.defaultField;
+        const activeFieldName = appState.filterField?.name || appState.defaultField; // using the selected filter field with a fallback to the default field
         l.definitionExpression = getDefinitionExpression();
         
         const featureFilter = new FeatureFilter({
-            where: `SIZE > ${APP_CONFIG.filters.featureEffectThreshold}` // assigning the default feature effect threshold
+            where: `SIZE > ${appState.featureEffectThreshold}` // assigning the default feature effect threshold
         });
         
         // waiting for the layer to be ready first before applying feature filter
@@ -222,8 +221,8 @@ export async function createDefaultMap(layerItems) {
     const view = await waitForMapView();
     await view.when();
 
-    await view.goTo(APP_CONFIG.map.initialCenter);
-    mapEl.zoom = APP_CONFIG.map.initialZoom;
+    await view.goTo(appState.initialCenter);
+    mapEl.zoom = appState.initialZoom;
 
     setMapContext(myMap);
     setViewContext(view);
@@ -241,6 +240,13 @@ export async function createDefaultMap(layerItems) {
 // this function will rebuild the map features based on field list selection or LOD slider changes
 export function applyFiltersToMap(){
     const definitionExpression = getDefinitionExpression();
+
+    if (appState.filterField){
+        warnUser(`New filter field field, ${appState.filterField.name}, LOD range: ${appState.LODRange[0]}-${appState.LODRange[1]}`, "success");
+    } else {
+        warnUser(`Filter field cleared, LOD range: ${appState.LODRange[0]}-${appState.LODRange[1]}`, "success");
+    }
+
     const popupContent = appState.filterField
         ? `${appState.filterField.name}: {${String(appState.filterField.name)}}`
         : "No filter field applied";
@@ -257,6 +263,7 @@ export function applyFiltersToMap(){
             content: popupContent
         };
     }
+    
 
     return definitionExpression;
 }
@@ -284,12 +291,6 @@ export function changeFilterField(){
         warnUser("An error occured while changing the map filter.")
         return
     })
-
-    if (appState.filterField?.name) {
-        warnUser(`Filter field changed to: "${appState.filterField.name}"`, "success");
-    } else {
-        warnUser("Filter field cleared.", "success");
-    }
 }
 
 

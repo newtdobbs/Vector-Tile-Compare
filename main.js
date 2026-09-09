@@ -1,12 +1,12 @@
 import "./style.css";
-import { APP_CONFIG } from "./src/config";
 import { createDefaultMap, queryItemsFromGroup } from "./src/map";
 import { populateFieldsList, populateLayerList, warnUser } from "./src/ui";
-import { setDefaultFilterField } from "./src/stateActions";
+import { setDefaultFilterField } from "./src/state/actions";
+import { appState } from "./src/state/store";
 
 async function bootstrapApp() {
   try {
-    setDefaultFilterField(APP_CONFIG.filters.defaultField);
+    setDefaultFilterField(appState.defaultFilterField);
 
     const layerItems = await queryItemsFromGroup();
     await createDefaultMap(layerItems);

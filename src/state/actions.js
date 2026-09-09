@@ -1,4 +1,4 @@
-import { appState } from "../state";
+import { appState } from "./store";
 
 export function setDefaultFilterField(fieldName) {
   appState.defaultFilterField = fieldName;
@@ -14,6 +14,15 @@ export function setViewContext(view) {
 
 export function setTileLayers(tileLayers) {
   appState.allTileLayers = tileLayers;
+}
+
+export function setSelectedTileStyle(selectedTileStyle){
+  appState.selectedTileStyle = selectedTileStyle;
+}
+
+export function setAGOLGroupID(){
+  appState.AGOLGroupID = appState.selectedTileStyle === "EVT" ? "7818b0837c064c158b4cbf777570390d" : "be3766ac45fc4310a2e8cf12224e5618" 
+
 }
 
 export function setActiveLayer(layerKey, layer) {
@@ -45,11 +54,12 @@ export function isLayerSwapVersionCurrent(layerKey, version) {
   return appState.layerSwapRequestVersion[layerKey] === version;
 }
 
-export function getDefinitionExpression() {
-  // if there is a filter field applied
+export function getDefinitionExpression() {    
+    
+    // if there is a filter field applied
   if (appState.filterField){
     return `${appState.filterField.name} > 0 AND (LOD >= ${appState.LODRange[0]} AND LOD <= ${appState.LODRange[1]})`;
-  // otherwise there is no filter field applied, so we only use the LOD range for the definition expression
+    // otherwise there is no filter field applied, so we only use the LOD range for the definition expression
   } else {
     return `LOD >= ${appState.LODRange[0]} AND LOD <= ${appState.LODRange[1]}`;
   }
