@@ -21,7 +21,7 @@ export function setSelectedTileStyle(selectedTileStyle){
 }
 
 export function setAGOLGroupID(){
-  appState.AGOLGroupID = appState.selectedTileStyle === "EVT" ? "7818b0837c064c158b4cbf777570390d" : "be3766ac45fc4310a2e8cf12224e5618" 
+  appState.groupID = appState.selectedTileStyle === "EVT" ? "7818b0837c064c158b4cbf777570390d" : "be3766ac45fc4310a2e8cf12224e5618" 
 
 }
 

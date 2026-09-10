@@ -6,12 +6,8 @@ export const appState = {
   appId: 'LZ49XhZatXR6WAJO',
   portalUrl: "https://arcgis-content.maps.arcgis.com",
   flowType: "auto",
-  popup: "false",
+  popup: false,
   selectedTileStyle: "EVT", // this can be EVT or OBM
-  // groupID: {
-  //   EVT: "7818b0837c064c158b4cbf777570390d", // Jim's EVT group
-  //   OBM: "be3766ac45fc4310a2e8cf12224e5618" // my group (replace with Jim's OBM)
-  // },
   groupID: "7818b0837c064c158b4cbf777570390d",
   maxItems: 20,
   requiredTitleText: "Esri Vector Basemap Tile Statistics",

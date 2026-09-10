@@ -55,10 +55,14 @@
               <arcgis-basemap-gallery reference-element="mapEl" id="basemapGallery"></arcgis-basemap-gallery>
             </calcite-accordion-item>
           </calcite-accordion>
-           <div id="basemap-style-toggle" >
-             <calcite-button label="EVT" appearance="solid">EVT</calcite-button>            
-             <calcite-button label="OBM" appearance="outline-fill">OBM</calcite-button>             
-          </div>
+           <!-- <div id="basemap-style-toggle" >
+             <calcite-button label="EVT" id="EVT-button" appearance="solid">EVT</calcite-button>            
+             <calcite-button label="OBM" id="OBM-button" appearance="outline-fill">OBM</calcite-button>             
+          </div> -->
+          <calcite-segmented-control id="tile-style-toggle" width="full">
+            <calcite-segmented-control-item id="EVTButton" value="EVT" checked>Esri Vector Tile</calcite-segmented-control-item>
+            <calcite-segmented-control-item id="OBMButton" value="OBM">Open Basemap</calcite-segmented-control-item>
+        </calcite-segmented-control>
       </calcite-panel>
     </calcite-shell-panel>
 

@@ -7,9 +7,11 @@ import {
   setSelectedLayerItemForTree,
   setMapLOD
 } from "./state/actions";
+import { warnUser } from "./helperFunctions";
 
-const fieldsList = document.getElementById("fields-list");
-const LODSlider = document.getElementById("lod-slider");
+export const fieldsList = document.getElementById("fields-list");
+export const LODSlider = document.getElementById("lod-slider");
+export const tileStyleToggle = document.getElementById("tile-style-toggle");
 
 /**
  * creates a calcite-list-item for a given field present in our feature layer
@@ -138,35 +140,11 @@ export function populateLayerList(key) {
   }
 }
 
-LODSlider.addEventListener("calciteSliderChange", () => {
-  // console.log(`Slider changed to min(${LODSlider.minValue}), max(${LODSlider.maxValue})`)
-  setMapLOD(LODSlider.minValue, LODSlider.maxValue);
-  applyFiltersToMap();
-})
-
-
-
 /**
- * a helper functiuon to warn the user 
- * 
- * @param {string} message - the string to display in the calcite alert
- * @param {kind} message - the type (color) of the calcite alert
+ * This will be called on app initialization, and whenever the user swaps between EVT and OBM
  */
-export function warnUser(message, kind="warning") {
-  const existingAlert = document.querySelector("calcite-alert");
-  if (existingAlert) {
-    existingAlert.remove();
-  }
+export function updateUI(){
 
-  const newAlert = document.createElement("calcite-alert");
-  newAlert.open = true;
-  newAlert.kind = kind;
-  newAlert.autoClose = true;
-
-  const title = document.createElement("calcite-alert-message");
-  title.textContent = message;
-  title.slot = "title";
-  newAlert.appendChild(title);
-
-  document.body.appendChild(newAlert);
 }
+
+

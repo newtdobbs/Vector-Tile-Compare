@@ -1,8 +1,10 @@
 import "./style.css";
 import { createDefaultMap, queryItemsFromGroup } from "./src/map";
-import { populateFieldsList, populateLayerList, warnUser } from "./src/ui";
+import { populateFieldsList, populateLayerList } from "./src/ui";
 import { setDefaultFilterField } from "./src/state/actions";
 import { appState } from "./src/state/store";
+import { warnUser } from "./src/helperFunctions";
+import { wireEvents } from "./src/app/wireEvents";
 
 async function bootstrapApp() {
   try {
@@ -16,6 +18,7 @@ async function bootstrapApp() {
     await populateFieldsList();
     populateLayerList("top");
     populateLayerList("bottom");
+    wireEvents();
   } catch (error) {
     console.error("Application bootstrap failed", error);
     warnUser("Application failed to initialize. Check console for details.");

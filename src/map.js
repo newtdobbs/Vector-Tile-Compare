@@ -7,7 +7,6 @@ import "@arcgis/map-components/components/arcgis-popup";
 
 import { appState } from "./state/store";
 import "../style.css";
-import { warnUser } from "./ui";
 import {
     isLayerSwapVersionCurrent,
     nextLayerSwapVersion,
@@ -18,6 +17,7 @@ import {
     setTileLayers,
     getDefinitionExpression
 } from "./state/actions";
+import { warnUser } from "./helperFunctions";
 
 const [Map, MapView] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/core/views/MapView.js"]);
 const PictureMarkerSymbol = await $arcgis.import("@arcgis/core/symbols/PictureMarkerSymbol.js");
