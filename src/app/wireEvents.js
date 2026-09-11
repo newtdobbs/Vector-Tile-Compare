@@ -1,8 +1,8 @@
 import { setMapLOD } from "../state/actions";
-import { applyFiltersToMap } from "../map"
-import { LODSlider, tileStyleToggle } from "../ui";
+import { applyFiltersToMap, createDefaultMap, queryItemsFromGroup } from "../map"
+import { LODSlider, populateFieldsList, populateLayerList, tileStyleToggle } from "../ui";
 import { appState } from "../state/store";
-import { setSelectedTileStyle, setAGOLGroupID } from "../state/actions"
+import { setSelectedTileStyle, setAGOLGroupID, clearStateForField } from "../state/actions"
 import { warnUser } from "../helperFunctions";
 
 
@@ -18,12 +18,37 @@ export function wireEvents(){
 }
 
 
-function handleBasemapButtonSelect(){
+async function handleBasemapButtonSelect(){
     // we only make these changes if the button clicked is NOT the current state value
     if (tileStyleToggle.value !== appState.selectedTileStyle) { 
-        const oldState = appState.selectedTileStyle
-        setSelectedTileStyle(tileStyleToggle.value) 
-        warnUser(`Setting basemap style to ${tileStyleToggle.selectedItem.textContent}`, "success")
-        setAGOLGroupID();
+        const loader = document.getElementById("app-loader");
+        tileStyleToggle.disabled = true;
+        loader.hidden = false;
+
+        try {
+            console.log('Setting selected tile style to:', tileStyleToggle.value)
+            setSelectedTileStyle(tileStyleToggle.value);
+            setAGOLGroupID();
+            console.log('agol group ID is now', appState.groupID);
+            clearStateForField();
+            console.log('after clearing, state is now:', appState)
+            const layerItems = await queryItemsFromGroup();
+            console.log(`Queried the following items from ${appState.groupID}:`, layerItems)
+            console.log('Creating a default map')
+            await createDefaultMap(layerItems);
+            console.log('Populating the fields list')
+            console.log('Populating the fields list')
+            await populateFieldsList();
+            populateLayerList("top");
+            populateLayerList("bottom");
+
+            warnUser(`Set tile source to ${tileStyleToggle.selectedItem.textContent}`, "success");
+        } catch (error) {
+            console.error("Tile source switch failed", error);
+            warnUser("Unable to switch tile sources. Please try again.");
+        } finally {
+            loader.hidden = true;
+            tileStyleToggle.disabled = false;
+        }
     } 
 }

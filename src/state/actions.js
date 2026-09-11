@@ -54,8 +54,20 @@ export function isLayerSwapVersionCurrent(layerKey, version) {
   return appState.layerSwapRequestVersion[layerKey] === version;
 }
 
+export function setTopLayer(topLayer){
+  appState.topLayer = topLayer;
+}
+
+export function setBottomLayer(bottomLayer){
+  appState.bottomLayer = bottomLayer;
+}
+
+export function setLayerSwapRequestVersion(topLayerVersion, bottomLayerVersion){
+  appState.layerSwapRequestVersion.topLayer = topLayerVersion;
+  appState.layerSwapRequestVersion.bottomLayer = bottomLayerVersion;
+}
+
 export function getDefinitionExpression() {    
-    
     // if there is a filter field applied
   if (appState.filterField){
     return `${appState.filterField.name} > 0 AND (LOD >= ${appState.LODRange[0]} AND LOD <= ${appState.LODRange[1]})`;
@@ -63,4 +75,18 @@ export function getDefinitionExpression() {
   } else {
     return `LOD >= ${appState.LODRange[0]} AND LOD <= ${appState.LODRange[1]}`;
   }
+}
+
+// we do not change group ID, it will need to stay populated
+export function clearStateForField(){
+  appState.layerSwapRequestVersion.topLayer += 1;
+  appState.layerSwapRequestVersion.bottomLayer += 1;
+  setMapContext(null);
+  setViewContext(null);
+  setTileLayers([]);
+  setFilterField(null);
+  setTopLayer(null);
+  setBottomLayer(null);
+  setSelectedLayerItemForTree("top", null);
+  setSelectedLayerItemForTree("bottom", null);
 }

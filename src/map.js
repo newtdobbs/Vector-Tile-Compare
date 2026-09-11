@@ -4,18 +4,19 @@ const Zoom = await $arcgis.import("@arcgis/core/widgets/Zoom.js");
 const UI = await $arcgis.import("@arcgis/core/views/ui/UI.js");
 import "@arcgis/map-components/components/arcgis-basemap-toggle";
 import "@arcgis/map-components/components/arcgis-popup";
-
+import { watch, when, on, once, whenOnce } from "@arcgis/core/core/reactiveUtils.js";
 import { appState } from "./state/store";
 import "../style.css";
 import {
     isLayerSwapVersionCurrent,
     nextLayerSwapVersion,
-    setActiveLayer,
     setFilterField,
     setMapContext,
     setViewContext,
     setTileLayers,
-    getDefinitionExpression
+    getDefinitionExpression,
+    setBottomLayer,
+    setTopLayer
 } from "./state/actions";
 import { warnUser } from "./helperFunctions";
 
@@ -130,10 +131,10 @@ export async function createDefaultMap(layerItems) {
     setTileLayers(basemapTileStatistics); // storing all basemap tile statistic layers in state
 
     const [newerItem, olderItem] = basemapTileStatistics.slice(0,2); // grabbing the two most recent tile statistics
-    setActiveLayer("bottomLayer", new FeatureLayer({ portalItem: { id: newerItem.item.id } })); // assigning the bottom layer to the newer one
+    setBottomLayer(new FeatureLayer({ portalItem: { id: newerItem.item.id } })); // assigning the bottom layer to the newer one
     // console.log('APP STATE BOTTOM LAYER', appState.bottomLayer) // log for debug
    
-    setActiveLayer("topLayer", new FeatureLayer({ portalItem: { id: olderItem.item.id } })); // and assigning the top layer to the older one 
+    setTopLayer(new FeatureLayer({ portalItem: { id: olderItem.item.id } })); // and assigning the top layer to the older one 
     // console.log('APP STATE TOP LAYER', appState.topLayer) // log for debug
 
     await Promise.all([appState.topLayer.load(), appState.bottomLayer.load()]);
@@ -214,17 +215,15 @@ export async function createDefaultMap(layerItems) {
     myMap.add(appState.bottomLayer)
     myMap.add(appState.topLayer)
 
-
-    mapEl.map = myMap // assigning the map we've created to the dom element
-
+    setMapContext(myMap);
+    mapEl.map = myMap;
 
     const view = await waitForMapView();
     await view.when();
-
+    
     await view.goTo(appState.initialCenter);
     mapEl.zoom = appState.initialZoom;
-
-    setMapContext(myMap);
+    
     setViewContext(view);
 
     // event listener for popup
