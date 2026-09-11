@@ -21,7 +21,7 @@ export const appState = {
   initialCenter: [137.421641, 35.918028],
   initialZoom: 6,
   filterField: null,
-  LODRange: [0, 16],
+  LOD: [0, 16],
   topLayer: null,
   bottomLayer: null,
   selectedLayerItemsByTree: {

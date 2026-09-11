@@ -37,8 +37,8 @@ export function clearFilterField() {
   appState.filterField = null;
 }
 
-export function setMapLOD(minLOD, maxLOD){
-  appState.LODRange = [minLOD, maxLOD]
+export function setMapLOD(LOD){
+  if (LOD) { appState.LOD = [LOD[0], LOD[1]] }
 }
 
 export function setSelectedLayerItemForTree(treeKey, layerItem) {
@@ -68,13 +68,20 @@ export function setLayerSwapRequestVersion(topLayerVersion, bottomLayerVersion){
 }
 
 export function getDefinitionExpression() {    
-    // if there is a filter field applied
+  let expression = ""
+  // if there is a filter field applied, we'll skip the LOD until we get the group swap working
   if (appState.filterField){
-    return `${appState.filterField.name} > 0 AND (LOD >= ${appState.LODRange[0]} AND LOD <= ${appState.LODRange[1]})`;
-    // otherwise there is no filter field applied, so we only use the LOD range for the definition expression
-  } else {
-    return `LOD >= ${appState.LODRange[0]} AND LOD <= ${appState.LODRange[1]}`;
+    // if (appState.LOD){
+    //   expression = `${appState.filterField.name} > 0 AND (LOD >= ${appState.LOD[0]} AND LOD <= ${appState.LOD[1]})`;
+    // }  
+    // else {
+      expression = `${appState.filterField.name} > 0`
+    // }
+  // } else if (appState.LOD) {
+    // expression = `LOD >= ${appState.LOD[0]} AND LOD <= ${appState.LOD[1]}`;
   }
+  return expression
+    
 }
 
 // we do not change group ID, it will need to stay populated
@@ -86,7 +93,11 @@ export function clearStateForField(){
   setTileLayers([]);
   setFilterField(null);
   setTopLayer(null);
+  console.log('Resetting map LOD')
+  setMapLOD(null);
+  console.log('Map LOD is now', appState.LOD)
   setBottomLayer(null);
   setSelectedLayerItemForTree("top", null);
   setSelectedLayerItemForTree("bottom", null);
+  setFilterField(appState.defaultFilterField);
 }

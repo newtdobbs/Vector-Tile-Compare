@@ -1,5 +1,5 @@
 import { appState } from "./state/store";
-import { ignoreFields } from "./constants";
+import { defaultLOD, ignoreFields } from "./constants";
 import { changeFilterField, changeMapLayers, applyFiltersToMap } from "./map";
 import {
   clearFilterField,
@@ -80,6 +80,9 @@ export async function populateFieldsList() {
     if (!ignoreFields.includes(field.name)) {
       createListItemForField(field);
     }
+    // if(field.name === "LOD"){
+    //   setMapLOD(defaultLOD);
+    // }
   });
 }
 

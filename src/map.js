@@ -191,6 +191,8 @@ export async function createDefaultMap(layerItems) {
 
         const activeFieldName = appState.filterField?.name || appState.defaultField; // using the selected filter field with a fallback to the default field
         l.definitionExpression = getDefinitionExpression();
+
+        console.log('definition expression determined as', l.definitionExpression)
         
         const featureFilter = new FeatureFilter({
             where: `SIZE > ${appState.featureEffectThreshold}` // assigning the default feature effect threshold
@@ -219,10 +221,10 @@ export async function createDefaultMap(layerItems) {
     mapEl.map = myMap;
 
     const view = await waitForMapView();
-    await view.when();
-    
-    await view.goTo(appState.initialCenter);
-    mapEl.zoom = appState.initialZoom;
+    await view.when(()=> {
+       view.goTo(appState.initialCenter);
+       mapEl.zoom = appState.initialZoom;
+    });
     
     setViewContext(view);
 
@@ -239,11 +241,12 @@ export async function createDefaultMap(layerItems) {
 // this function will rebuild the map features based on field list selection or LOD slider changes
 export function applyFiltersToMap(){
     const definitionExpression = getDefinitionExpression();
+    console.log('definition expression determined as', definitionExpression)
 
     if (appState.filterField){
-        warnUser(`New filter field field, ${appState.filterField.name}, LOD range: ${appState.LODRange[0]}-${appState.LODRange[1]}`, "success");
+        warnUser(`New filter field field: ${appState.filterField.name}, LOD range: ${appState.LOD[0]}-${appState.LOD[1]}`, "success");
     } else {
-        warnUser(`Filter field cleared, LOD range: ${appState.LODRange[0]}-${appState.LODRange[1]}`, "success");
+        warnUser(`Filter field cleared, LOD range: ${appState.LOD[0]}-${appState.LOD[1]}`, "success");
     }
 
     const popupContent = appState.filterField
